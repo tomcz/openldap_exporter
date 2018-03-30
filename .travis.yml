@@ -1,0 +1,7 @@
+language: go
+go:
+  - 1.9.x
+before_install:
+  - go get -u github.com/golang/dep/cmd/dep
+script:
+  - make clean deps build
