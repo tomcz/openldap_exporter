@@ -29,3 +29,6 @@ compile = GOPATH=${GO_PATH} \
 build: target
 	$(call compile,linux)
 	$(call compile,darwin)
+
+travis: clean deps
+	$(call compile,linux)

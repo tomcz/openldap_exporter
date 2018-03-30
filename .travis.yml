@@ -4,4 +4,4 @@ go:
 before_install:
   - go get -u github.com/golang/dep/cmd/dep
 script:
-  - make clean deps build
+  - make travis
