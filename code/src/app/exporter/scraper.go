@@ -36,7 +36,7 @@ var (
 		prometheus.GaugeOpts{
 			Subsystem: "openldap",
 			Name:      "monitored_object",
-			Help:      baseDN + " " + objectClass(monitoredObject),
+			Help:      baseDN + " " + objectClass(monitoredObject) + " " + monitoredInfo,
 		},
 		[]string{"dn"},
 	)
@@ -44,7 +44,7 @@ var (
 		prometheus.GaugeOpts{
 			Subsystem: "openldap",
 			Name:      "monitor_counter_object",
-			Help:      baseDN + " " + objectClass(monitorCounterObject),
+			Help:      baseDN + " " + objectClass(monitorCounterObject) + " " + monitorCounter,
 		},
 		[]string{"dn"},
 	)
@@ -52,7 +52,7 @@ var (
 		prometheus.GaugeOpts{
 			Subsystem: "openldap",
 			Name:      "monitor_operation",
-			Help:      opsBaseDN + " " + objectClass(monitorOperation),
+			Help:      opsBaseDN + " " + objectClass(monitorOperation) + " " + monitorOpCompleted,
 		},
 		[]string{"dn"},
 	)

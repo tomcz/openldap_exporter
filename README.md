@@ -31,7 +31,7 @@ Once you've built the exporter (see below) you can install it on the same server
 ```
 $> curl -s http://localhost:8001/metrics
 ...
-# HELP openldap_monitor_counter_object cn=Monitor (objectClass=monitorCounterObject)
+# HELP openldap_monitor_counter_object cn=Monitor (objectClass=monitorCounterObject) monitorCounter
 # TYPE openldap_monitor_counter_object gauge
 openldap_monitor_counter_object{dn="cn=Bytes,cn=Statistics,cn=Monitor"} 1.857812777e+09
 openldap_monitor_counter_object{dn="cn=Current,cn=Connections,cn=Monitor"} 50
@@ -42,7 +42,7 @@ openldap_monitor_counter_object{dn="cn=Read,cn=Waiters,cn=Monitor"} 31
 openldap_monitor_counter_object{dn="cn=Referrals,cn=Statistics,cn=Monitor"} 0
 openldap_monitor_counter_object{dn="cn=Total,cn=Connections,cn=Monitor"} 65383
 openldap_monitor_counter_object{dn="cn=Write,cn=Waiters,cn=Monitor"} 0
-# HELP openldap_monitor_operation cn=Operations,cn=Monitor (objectClass=monitorOperation)
+# HELP openldap_monitor_operation cn=Operations,cn=Monitor (objectClass=monitorOperation) monitorOpCompleted
 # TYPE openldap_monitor_operation gauge
 openldap_monitor_operation{dn="cn=Abandon,cn=Operations,cn=Monitor"} 0
 openldap_monitor_operation{dn="cn=Add,cn=Operations,cn=Monitor"} 0
@@ -54,7 +54,7 @@ openldap_monitor_operation{dn="cn=Modify,cn=Operations,cn=Monitor"} 0
 openldap_monitor_operation{dn="cn=Modrdn,cn=Operations,cn=Monitor"} 0
 openldap_monitor_operation{dn="cn=Search,cn=Operations,cn=Monitor"} 161789
 openldap_monitor_operation{dn="cn=Unbind,cn=Operations,cn=Monitor"} 9336
-# HELP openldap_monitored_object cn=Monitor (objectClass=monitoredObject)
+# HELP openldap_monitored_object cn=Monitor (objectClass=monitoredObject) monitoredInfo
 # TYPE openldap_monitored_object gauge
 openldap_monitored_object{dn="cn=Active,cn=Threads,cn=Monitor"} 1
 openldap_monitored_object{dn="cn=Backload,cn=Threads,cn=Monitor"} 1
@@ -69,7 +69,6 @@ openldap_monitored_object{dn="cn=Uptime,cn=Time,cn=Monitor"} 1.225737e+06
 openldap_scrape{result="ok"} 6985
 ...
 ```
-
 
 ## Building the exporter
 
