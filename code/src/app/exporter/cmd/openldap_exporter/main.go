@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	promAddr = flag.String("promAddr", ":8001", "Bind address for prometheus listener")
+	promAddr = flag.String("promAddr", ":8001", "Bind address for prometheus HTTP metrics server")
 	ldapAddr = flag.String("ldapAddr", "localhost:389", "Address of OpenLDAP server")
 	ldapUser = flag.String("ldapUser", "", "OpenLDAP bind username (optional)")
 	ldapPass = flag.String("ldapPass", "", "OpenLDAP bind password (optional)")
@@ -27,7 +27,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	log.Println("Starting HTTP metrics server on", *promAddr)
+	log.Println("Starting prometheus HTTP metrics server on", *promAddr)
 	go exporter.StartMetricsServer(*promAddr)
 
 	log.Println("Starting OpenLDAP scraper for", *ldapAddr)
