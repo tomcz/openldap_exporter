@@ -26,7 +26,7 @@ You may need to also load the monitoring backend module if your _slapd_ installa
 moduleload  back_monitor
 ```
 
-Once you've built the exporter (see below) you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure your Prometheus server to scrape the `/metrics` endpoint of your server at port 8001.
+Once you've built the exporter (see below) you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 8001, and check to see that it is working via curl:
 
 ```
 $> curl -s http://localhost:8001/metrics
