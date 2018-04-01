@@ -20,13 +20,13 @@ rootpw YOUR_MONITORING_ROOT_PASSWORD
 
 Technically you don't need `rootdn` or `rootpw`, but having unauthenticated access to _slapd_ feels a little wrong.
 
-You may need to also load the monitoring backend module if your _slapd_ installation needs to load backends as modules by addint this to your `slapd.conf`:
+You may need to also load the monitoring backend module if your _slapd_ installation needs to load backends as modules by adding this to your `slapd.conf`:
 
 ```
 moduleload  back_monitor
 ```
 
-Once you've built the exporter (see below) you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure your prometheus server to scrape the `/metrics` endpoint of your server at port 8001.
+Once you've built the exporter (see below) you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure your Prometheus server to scrape the `/metrics` endpoint of your server at port 8001.
 
 ```
 $> curl -s http://localhost:8001/metrics
