@@ -10,6 +10,10 @@ import (
 
 var version string
 
+func GetVersion() string {
+	return version
+}
+
 func StartMetricsServer(bindAddr string) {
 	d := http.NewServeMux()
 	d.Handle("/metrics", promhttp.Handler())

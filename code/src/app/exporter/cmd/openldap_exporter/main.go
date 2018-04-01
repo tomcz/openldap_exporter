@@ -2,22 +2,30 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"app/exporter"
 )
 
 var (
-	promAddr = flag.String("promAddr", ":8001", "bind address for prometheus listener")
-	ldapAddr = flag.String("ldapAddr", "localhost:389", "address of OpenLDAP server")
-	ldapUser = flag.String("ldapUser", "", "LDAP bind username (optional)")
-	ldapPass = flag.String("ldapPass", "", "LDAP bind password (optional)")
-	interval = flag.Duration("interval", 30*time.Second, "scrape interval")
+	promAddr = flag.String("promAddr", ":8001", "Bind address for prometheus listener")
+	ldapAddr = flag.String("ldapAddr", "localhost:389", "Address of OpenLDAP server")
+	ldapUser = flag.String("ldapUser", "", "OpenLDAP bind username (optional)")
+	ldapPass = flag.String("ldapPass", "", "OpenLDAP bind password (optional)")
+	interval = flag.Duration("interval", 30*time.Second, "Scrape interval")
+	version  = flag.Bool("version", false, "Show version and exit")
 )
 
 func main() {
 	flag.Parse()
+
+	if *version {
+		fmt.Println(exporter.GetVersion())
+		os.Exit(0)
+	}
 
 	log.Println("Starting HTTP metrics server on", *promAddr)
 	go exporter.StartMetricsServer(*promAddr)
