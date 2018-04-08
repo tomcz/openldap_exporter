@@ -26,10 +26,10 @@ You may need to also load the monitoring backend module if your _slapd_ installa
 moduleload  back_monitor
 ```
 
-Once you've built the exporter (see below) you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9431, and check to see that it is working via curl:
+Once you've built the exporter (see below) you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
 
 ```
-$> curl -s http://localhost:9431/metrics
+$> curl -s http://localhost:9330/metrics
 ...
 # HELP openldap_monitor_counter_object cn=Monitor (objectClass=monitorCounterObject) monitorCounter
 # TYPE openldap_monitor_counter_object gauge
@@ -93,7 +93,7 @@ Usage of ./target/openldap_exporter:
   -ldapUser string
         OpenLDAP bind username (optional)
   -promAddr string
-        Bind address for prometheus HTTP metrics server (default ":9431")
+        Bind address for prometheus HTTP metrics server (default ":9330")
   -version
         Show version and exit
 ```

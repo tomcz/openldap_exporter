@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	promAddr = flag.String("promAddr", ":9431", "Bind address for prometheus HTTP metrics server")
+	promAddr = flag.String("promAddr", ":9330", "Bind address for prometheus HTTP metrics server")
 	ldapAddr = flag.String("ldapAddr", "localhost:389", "Address of OpenLDAP server")
 	ldapUser = flag.String("ldapUser", "", "OpenLDAP bind username (optional)")
 	ldapPass = flag.String("ldapPass", "", "OpenLDAP bind password (optional)")
