@@ -5,4 +5,12 @@ before_install:
   - go get -u github.com/golang/dep/cmd/dep
 script:
   - make travis
-
+deploy:
+  provider: releases
+  api_key:
+    secure: xIfrDsgWrskAHjc50EuMG3kFRSvXIuWvqwPZS2MTVS+S/HmXVdasDrmfxaMVoKk4YVedOk15sNBSad0DmfxzgpHlm5IsMKls0He5ov38qGWOV2HNd7c4Bd1msArbekqHDu48wd7gnB4r7GC+BzliUCfCCfRFxbh5hnPjhYSnu7oFCC018LuTC82/zcYY3EMfjKajN1gMTGP8+saEYFD71ndOvPsjvZBufDlk6ZnpYNfooFujnhyzq3EjsMFbKikwyfRdbZm95+GB2UH/CP0EOIbLAS8Yi09m2wht1hgHFA9dfAWMxekA5AjAcS4AgedDPOchuAVSfm5z5niFIEc/rPaf/b40FRwIaOWSysOBLhV0l9AIj1Ku2v5iNOeUQON8X6Y4h89VQ9KGQln63s+kS51IXVHMO7yGJTkBGMuisgMbLqPowMfXckB8VmMH39YLJnAYyRtlxb+YzRf2Fynwck7hlYhVe4BkCrB+S2CBm/n1jBZ6ZOTpzXpI6wT6/JoBZZ629JTTEKEcHEB3mYc7DFzcISNxWGdfmp2vtfMiAQLevCE5cZwBlFjB60ed9I8aLvUeoa5ek/QEhpsyjK8CUiL2j93TH6C/wBbynBII6iHDUI/Up91DlhL0+SnokMb4XNLbKsbI4xV0Ov5d57ywl5lIKGx982sye0FG0hp1JeI=
+  file_glob: true
+  file: target/*
+  skip_cleanup: true
+  on:
+    tags: true
