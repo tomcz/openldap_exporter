@@ -70,14 +70,6 @@ openldap_scrape{result="ok"} 6985
 ...
 ```
 
-## Building the exporter
-
-1. Install Go from https://golang.org/
-2. Install `dep` from https://github.com/golang/dep
-3. Clone this repository and `cd` into its root.
-4. Fetch the third-party libraries: `make deps`
-5. Build the binary: `make build`
-
 ## Command line configuration
 
 The binary itself is configured via command line flags:
@@ -97,3 +89,11 @@ Usage of ./target/openldap_exporter:
   -version
         Show version and exit
 ```
+
+## Building the exporter
+
+1. Install Go from https://golang.org/
+2. Install `dep` from https://github.com/golang/dep
+3. Clone this repository and `cd` into its root.
+4. Fetch the third-party libraries: `make deps`
+5. Build the binary: `make build`
