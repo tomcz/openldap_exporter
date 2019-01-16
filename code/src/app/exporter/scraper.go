@@ -1,9 +1,11 @@
 package exporter
 
 import (
+	"crypto/tls"
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
@@ -22,6 +24,9 @@ const (
 
 	monitorOperation   = "monitorOperation"
 	monitorOpCompleted = "monitorOpCompleted"
+
+	LDAPWithTLS = "ldaps://"
+	LDAPNoTLS   = "ldap://"
 )
 
 type query struct {
@@ -99,8 +104,8 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
-	if err := scrapeAll(ldapAddr, ldapUser, ldapPass); err != nil {
+func ScrapeMetrics(ldapUri, ldapUser, ldapPass string, ldapSkipInsecure bool) {
+	if err := scrapeAll(ldapUri, ldapUser, ldapPass, ldapSkipInsecure); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
 		log.Println("Scrape failed, error is:", err)
 	} else {
@@ -108,10 +113,26 @@ func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
 	}
 }
 
-func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
-	l, err := ldap.Dial("tcp", ldapAddr)
-	if err != nil {
-		return err
+func scrapeAll(ldapUri, ldapUser, ldapPass string, ldapSkipInsecure bool) error {
+	host := strings.ToLower(ldapUri)
+	var l *ldap.Conn
+	var err error
+	if strings.HasPrefix(host, LDAPWithTLS) {
+		host = strings.TrimPrefix(host, LDAPWithTLS)
+		l, err = ldap.DialTLS("tcp", host, &tls.Config{InsecureSkipVerify: ldapSkipInsecure, ServerName: strings.Split(host, ":")[0]})
+		if err != nil {
+			log.Println("Error dialing tls, error is:", err)
+			return err
+		}
+	} else {
+		if strings.HasPrefix(host, LDAPNoTLS) {
+			host = strings.TrimPrefix(host, LDAPNoTLS)
+		}
+		l, err = ldap.Dial("tcp", host)
+		if err != nil {
+			log.Println("Error dialing, error is:", err)
+			return err
+		}
 	}
 	defer l.Close()
 

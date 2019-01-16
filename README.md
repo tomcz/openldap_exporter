@@ -78,14 +78,16 @@ The binary itself is configured via command line flags:
 Usage of ./target/openldap_exporter:
   -interval duration
         Scrape interval (default 30s)
-  -ldapAddr string
-        Address of OpenLDAP server (default "localhost:389")
+  -ldapUri string
+        Uri of OpenLDAP server (default "ldap://localhost:389")
   -ldapPass string
         OpenLDAP bind password (optional)
   -ldapUser string
         OpenLDAP bind username (optional)
   -promAddr string
         Bind address for prometheus HTTP metrics server (default ":9330")
+  -ldapSkipInsecure
+        OpenLDAP Skip TLS verify (default=false)
   -version
         Show version and exit
 ```
