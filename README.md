@@ -10,6 +10,8 @@ This exporter is based on the ideas in https://github.com/jcollie/openldap_expor
 
 _slapd_ supports an optional LDAP monitoring interface you can use to obtain information regarding the current state of your _slapd_ instance. Documentation for this backend can be found in the OpenLDAP [backend guide](http://www.openldap.org/doc/admin24/backends.html#Monitor) and [administration guide](http://www.openldap.org/doc/admin24/monitoringslapd.html).
 
+### Using `slapd.conf` configuration file
+
 To enable the backend add the following to the bottom of your `slapd.conf` file:
 
 ```
@@ -25,6 +27,31 @@ You may need to also load the monitoring backend module if your _slapd_ installa
 ```
 moduleload  back_monitor
 ```
+
+### Using OpenLdap on-line configuration (OLC)
+
+First, you'll need to enable the `back_monitor` module. Please be careful with the number in front of `back_monitor` to not overlap with your currently enabled modules.
+
+```
+dn: cn=module{0},cn=config
+changetype: modify
+add: olcModuleLoad
+olcModuleLoad: {1}back_monitor
+```
+
+Create a dedicated monitoring user in the way you prefer. In the example above "cn=monitoring,cn=Monitor".
+
+And finally setup the monitor module:
+
+```
+dn: olcDatabase={2}Monitor,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcMonitorConfig
+olcDatabase: {2}Monitor
+olcAccess: {0}to dn.subtree="cn=Monitor" by dn.base="cn=monitoring,cn=Monitor" read by * none
+```
+
+### Read the results
 
 Once you've built the exporter (see below), or downloaded the [latest release](https://github.com/tomcz/openldap_exporter/releases), you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
 
