@@ -12,7 +12,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/xaque208/openldap_exporter/code/src/app/exporter"
+	"github.com/xaque208/openldap_exporter/exporter"
 )
 
 var rootCmd = &cobra.Command{
