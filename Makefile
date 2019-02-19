@@ -1,32 +1,28 @@
 GITCOMMIT := $(shell git rev-parse --short HEAD 2>/dev/null)
 BASE_DIR := $(shell git rev-parse --show-toplevel 2>/dev/null)
-LDFLAGS := -X app/exporter.version=${GITCOMMIT}
+LDFLAGS := -X exporter.version=${GITCOMMIT}
 GO_PATH := ${BASE_DIR}/code
 
 precommit: clean format lint build
 
 deps:
-	cd ${GO_PATH}/src/app && GOPATH=${GO_PATH} dep ensure
+	dep ensure
 
 clean:
-	rm -rf target
-
-target:
-	mkdir target
+	rm -Rf build/
 
 format:
-	GOPATH=${GO_PATH} go fmt app/exporter/...
+	go fmt
 
 lint:
-	GOPATH=${GO_PATH} go vet app/exporter/...
+	go vet
 
-compile = GOPATH=${GO_PATH} \
-	GOOS=$1 GOARCH=amd64 \
+compile = GOOS=$1 GOARCH=amd64 \
 	go build -ldflags "${LDFLAGS}" \
-	-o target/openldap_exporter-$1 \
-	app/exporter/cmd/openldap_exporter
+	-o build/openldap_exporter-$1
 
-build: target
+
+build:
 	$(call compile,linux)
 	$(call compile,darwin)
 
