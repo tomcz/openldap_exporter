@@ -25,6 +25,7 @@ compile = GOOS=$1 GOARCH=amd64 \
 build:
 	$(call compile,linux)
 	$(call compile,darwin)
+	$(call compile,freebsd)
 
 travis: clean deps
 	$(call compile,linux)
