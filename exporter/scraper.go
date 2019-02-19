@@ -1,12 +1,13 @@
 package exporter
 
 import (
+	"crypto/tls"
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v2"
 )
 
@@ -99,17 +100,21 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
-	if err := scrapeAll(ldapAddr, ldapUser, ldapPass); err != nil {
+func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string, tlsConfig *tls.Config) {
+	if err := scrapeAll(ldapAddr, ldapUser, ldapPass, tlsConfig); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
-		log.Println("Scrape failed, error is:", err)
+		log.Error("Scrape failed, error is:", err)
 	} else {
 		scrapeCounter.WithLabelValues("ok").Inc()
 	}
 }
 
-func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
-	l, err := ldap.Dial("tcp", ldapAddr)
+func scrapeAll(ldapAddr, ldapUser, ldapPass string, tlsConfig *tls.Config) error {
+	l, err := ldap.DialTLS(
+		"tcp",
+		ldapAddr,
+		tlsConfig,
+	)
 	if err != nil {
 		return err
 	}
