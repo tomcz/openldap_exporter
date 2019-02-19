@@ -75,19 +75,33 @@ openldap_scrape{result="ok"} 6985
 The binary itself is configured via command line flags:
 
 ```
-Usage of ./target/openldap_exporter:
-  -interval duration
-        Scrape interval (default 30s)
-  -ldapAddr string
-        Address of OpenLDAP server (default "localhost:389")
-  -ldapPass string
-        OpenLDAP bind password (optional)
-  -ldapUser string
-        OpenLDAP bind username (optional)
-  -promAddr string
-        Bind address for prometheus HTTP metrics server (default ":9330")
-  -version
-        Show version and exit
+Usage:
+  openldap_exporter [flags]
+
+Flags:
+      --bindDN string   The LDAP bind DN
+      --bindPW string   The LDAP bind password
+  -c, --config string   config file (default is $HOME/.openldap_exporter.yaml)
+  -h, --help            help for openldap_exporter
+  -i, --interval int    The interval at which to update the data (default 30)
+  -L, --listen string   The listen address (default is :9100 (default ":9100")
+  -v, --verbose         Increase verbosity
+```
+
+
+A sample `~/.openldap_exporter.yaml` file might look like the following.
+
+```
+---
+ldap:
+  host: 'auth8.example.com'
+  port: 636
+  binddn: 'cn=monitor,ou=services,dc=example'
+  bindpw: 'secret'
+tls:
+  skip_verify: false
+  ca_file: /etc/ssl/ca.pem
+interval: 30
 ```
 
 ## Building the exporter
