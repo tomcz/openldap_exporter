@@ -4,3 +4,4 @@ code/bin/
 code/pkg/
 code/src/app/vendor/
 target/
+build/
