@@ -1,9 +1,16 @@
 package exporter
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/url"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
@@ -22,6 +29,11 @@ const (
 
 	monitorOperation   = "monitorOperation"
 	monitorOpCompleted = "monitorOpCompleted"
+
+	SchemeLDAPS = "ldaps"
+	SchemeLDAP  = "ldap"
+	SchemeLDAPI = "ldapi"
+
 )
 
 type query struct {
@@ -30,6 +42,110 @@ type query struct {
 	searchAttr   string
 	metric       *prometheus.GaugeVec
 }
+
+type LDAPConfig struct {
+
+	UseTLS      bool
+	UseStartTLS bool
+	Scheme      string
+	Addr        string
+	Host		string
+	Port		string
+	Protocol    string
+	Username    string
+	Password    string
+	TLSConfig   tls.Config
+
+}
+
+func (config *LDAPConfig) ParseAddr(addr string) error{
+
+	var u *url.URL
+
+	u,err := url.Parse(addr)
+	if (err != nil) {
+		// Well, so far the easy way....
+		u = &url.URL{}
+	}
+
+	if u.Host == "" {
+
+		if strings.HasPrefix(addr, SchemeLDAPI) {
+			u.Scheme = SchemeLDAPI
+			u.Host, _ = url.QueryUnescape(strings.Replace(addr, SchemeLDAPI + "://", "", 1))
+		} else if strings.HasPrefix(addr, SchemeLDAPS) {
+			u.Scheme = SchemeLDAPS
+			u.Host = strings.Replace(addr, SchemeLDAPS + "://", "", 1)
+		} else {
+			u.Scheme = SchemeLDAP
+			u.Host = strings.Replace(addr, SchemeLDAP + "://", "", 1)
+		}
+
+	}
+
+	config.Addr = u.Host
+	config.Scheme = u.Scheme
+	config.Host = u.Hostname()
+
+	if u.Scheme == SchemeLDAPS {
+		config.UseTLS = true
+	} else if u.Scheme == SchemeLDAP {
+		config.UseTLS = false
+	} else if u.Scheme == SchemeLDAPI {
+		config.Protocol = "unix"
+	} else {
+		return errors.New(u.Scheme + " is not a scheme i understand, refusing to continue")
+	}
+
+	return nil
+
+}
+
+func (config *LDAPConfig) LoadCACert(cafile string) error {
+	
+
+	if _, err := os.Stat(cafile); os.IsNotExist(err) {
+		return errors.New("CA Certificate file does not exists")
+	}
+
+	cert, err := ioutil.ReadFile(cafile)
+
+	if err != nil {
+		return errors.New("CA Certificate file is not readable")
+	}
+
+	config.TLSConfig.RootCAs = x509.NewCertPool()
+	config.TLSConfig.ServerName = config.Host
+
+	ok := config.TLSConfig.RootCAs.AppendCertsFromPEM(cert)
+
+	if ok == false {
+		return errors.New("Could not parse CA")
+	}
+
+	return nil
+
+}
+
+
+func NewLDAPConfig() LDAPConfig {
+
+	conf := LDAPConfig{}
+
+	conf.Scheme 		= SchemeLDAP
+	conf.Host 			= "localhost"
+	conf.Port			= "389"
+	conf.Addr 			= conf.Host + ":" + conf.Port
+	conf.Protocol 		= "tcp"
+	conf.UseTLS 		= false
+	conf.UseStartTLS 	= false
+	conf.TLSConfig		= tls.Config{}
+
+
+	return conf
+
+}
+
 
 var (
 	monitoredObjectGauge = prometheus.NewGaugeVec(
@@ -99,8 +215,8 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
-	if err := scrapeAll(ldapAddr, ldapUser, ldapPass); err != nil {
+func ScrapeMetrics(config *LDAPConfig) {
+	if err := scrapeAll(config); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
 		log.Println("Scrape failed, error is:", err)
 	} else {
@@ -108,15 +224,33 @@ func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
 	}
 }
 
-func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
-	l, err := ldap.Dial("tcp", ldapAddr)
+func scrapeAll(config *LDAPConfig) error {
+
+	var l *ldap.Conn
+	var err error
+
+	if config.UseTLS {
+		l, err = ldap.DialTLS(config.Protocol, config.Addr, &config.TLSConfig)
+	} else {
+		l, err = ldap.Dial(config.Protocol, config.Addr)
+		if err != nil {
+			return err
+		}
+		if config.UseStartTLS {
+			err = l.StartTLS(&config.TLSConfig)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
 	if err != nil {
 		return err
 	}
 	defer l.Close()
 
-	if ldapUser != "" && ldapPass != "" {
-		err = l.Bind(ldapUser, ldapPass)
+	if config.Username != "" && config.Password != "" {
+		err = l.Bind(config.Username, config.Password)
 		if err != nil {
 			return err
 		}
