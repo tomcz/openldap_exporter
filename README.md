@@ -75,20 +75,34 @@ openldap_scrape{result="ok"} 6985
 The binary itself is configured via command line flags:
 
 ```
-Usage of ./target/openldap_exporter:
+Usage of ./openldap_exporter-linux:
   -interval duration
-        Scrape interval (default 30s)
+    	Scrape interval (default 30s)
   -ldapAddr string
-        Address of OpenLDAP server (default "localhost:389")
-  -ldapPass string
-        OpenLDAP bind password (optional)
+    	Address of OpenLDAP server (default "ldap://localhost:389")
   -ldapUser string
-        OpenLDAP bind username (optional)
+    	OpenLDAP bind username (optional)
+  -ldapPass string
+    	OpenLDAP bind password (optional)
+  -ldapStartTLS
+    	Use start TLS (optional)
+  -ldapCACrt string
+    	Path to CA certificate for LDAPS (optional)
   -promAddr string
-        Bind address for prometheus HTTP metrics server (default ":9330")
+    	Bind address for prometheus HTTP metrics server (default ":9330")
   -version
-        Show version and exit
+    	Show version and exit
 ```
+
+`-ldapAddr` supports `ldaps://` and `ldap://` scheme uri's. (defaults to ldap:// scheme)  
+using the LDAPS scheme will open a connection using TLS.  
+To use StartTLS use ldap:// scheme and the command line flag `-ldapStartTLS`
+
+`-ldapCACrt` if the ldap server uses a custom CA certificate, add the path to the public CA Cert in PEM format  
+
+
+
+
 
 ## Building the exporter
 

@@ -11,11 +11,11 @@ import (
 
 var (
 	promAddr 		= flag.String("promAddr", ":9330", "Bind address for prometheus HTTP metrics server")
-	ldapAddr 		= flag.String("ldapAddr", "localhost:389", "Address of OpenLDAP server")
+	ldapAddr 		= flag.String("ldapAddr", "ldap://localhost:389", "Address of OpenLDAP server")
 	ldapCACrt 		= flag.String("ldapCACrt", "", "Path to CA certificate for LDAPS (optional)")
 	ldapUser		= flag.String("ldapUser", "", "OpenLDAP bind username (optional)")
-	ldapUseStartTLS = flag.Bool("ldapUseStartTLS", false, "Use start TLS (optional)")
 	ldapPass 		= flag.String("ldapPass", "", "OpenLDAP bind password (optional)")
+	ldapUseStartTLS = flag.Bool("ldapStartTLS", false, "Use start TLS (optional)")
 	interval 		= flag.Duration("interval", 30*time.Second, "Scrape interval")
 	version  		= flag.Bool("version", false, "Show version and exit")
 )
