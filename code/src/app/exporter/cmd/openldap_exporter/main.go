@@ -11,6 +11,8 @@ import (
 
 var (
 	promAddr 		= flag.String("promAddr", ":9330", "Bind address for prometheus HTTP metrics server")
+	promCrt 		= flag.String("promCrt", "", "Path to PEM Certificate (chain) file to run metrics server in https mode")
+	promCrtKey 		= flag.String("promCrtKey", "", "Path to PEM Certificate Key file to run metrics server in https mode")
 	ldapAddr 		= flag.String("ldapAddr", "ldap://localhost:389", "Address of OpenLDAP server")
 	ldapCACrt 		= flag.String("ldapCACrt", "", "Path to CA certificate for LDAPS (optional)")
 	ldapUser		= flag.String("ldapUser", "", "OpenLDAP bind username (optional)")
@@ -27,6 +29,7 @@ func main() {
 		fmt.Println("Version:", exporter.GetVersion())
 		os.Exit(0)
 	}
+
 
 	config := exporter.NewLDAPConfig()
 
@@ -55,8 +58,14 @@ func main() {
 		config.UseStartTLS = true
 	}
 
-	log.Println("Starting prometheus HTTP metrics server on", *promAddr)
-	go exporter.StartMetricsServer(*promAddr)
+	serverConfig := exporter.NewServerConfig()
+	serverConfig.Address = *promAddr
+	serverConfig.CertFile = *promCrt
+	serverConfig.KeyFile = *promCrtKey
+
+
+	log.Println("Starting prometheus HTTP(s) metrics server on", serverConfig.Address)
+	go exporter.StartMetricsServer(serverConfig)
 
 	log.Println("Starting OpenLDAP scraper for", *ldapAddr)
 	for range time.Tick(*interval) {

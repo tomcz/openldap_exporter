@@ -10,16 +10,39 @@ import (
 
 var version string
 
+type ServerConfig struct {
+
+	Address string
+	CertFile string
+	KeyFile string
+
+}
+
 func GetVersion() string {
 	return version
 }
 
-func StartMetricsServer(bindAddr string) {
+func NewServerConfig() ServerConfig {
+
+	sc := ServerConfig{}
+
+	return sc
+
+}
+
+func StartMetricsServer(config ServerConfig) {
 	d := http.NewServeMux()
 	d.Handle("/metrics", promhttp.Handler())
 	d.HandleFunc("/version", showVersion)
 
-	err := http.ListenAndServe(bindAddr, d)
+	var err error
+
+	if config.CertFile != "" && config.KeyFile != "" {
+		err = http.ListenAndServeTLS(config.Address, config.CertFile, config.KeyFile, d)
+	} else {
+		err = http.ListenAndServe(config.Address, d)
+	}
+
 	if err != nil {
 		log.Fatal("Failed to start metrics server, error is:", err)
 	}
