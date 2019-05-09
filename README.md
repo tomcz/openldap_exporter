@@ -90,6 +90,10 @@ Usage of ./openldap_exporter-linux:
     	Path to CA certificate for LDAPS (optional)
   -promAddr string
     	Bind address for prometheus HTTP metrics server (default ":9330")
+  -promCrt string
+        Path to PEM Certificate (chain) file to run metrics server in https mode (optional, required if CrtKey is used)   
+  -promCrtKey string
+        Path to PEM Certificate Key file to run metrics server in https mode (optional, required if Crt is used)         
   -version
     	Show version and exit
 ```

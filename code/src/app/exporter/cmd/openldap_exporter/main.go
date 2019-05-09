@@ -11,8 +11,8 @@ import (
 
 var (
 	promAddr 		= flag.String("promAddr", ":9330", "Bind address for prometheus HTTP metrics server")
-	promCrt 		= flag.String("promCrt", "", "Path to PEM Certificate (chain) file to run metrics server in https mode")
-	promCrtKey 		= flag.String("promCrtKey", "", "Path to PEM Certificate Key file to run metrics server in https mode")
+	promCrt 		= flag.String("promCrt", "", "Path to PEM Certificate (chain) file to run metrics server in https mode (optional, required if CrtKey is used)")
+	promCrtKey 		= flag.String("promCrtKey", "", "Path to PEM Certificate Key file to run metrics server in https mode (optional, required if Crt is used)")
 	ldapAddr 		= flag.String("ldapAddr", "ldap://localhost:389", "Address of OpenLDAP server")
 	ldapCACrt 		= flag.String("ldapCACrt", "", "Path to CA certificate for LDAPS (optional)")
 	ldapUser		= flag.String("ldapUser", "", "OpenLDAP bind username (optional)")
