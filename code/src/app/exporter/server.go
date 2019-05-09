@@ -11,11 +11,9 @@ import (
 var version string
 
 type ServerConfig struct {
-
-	Address string
+	Address  string
 	CertFile string
-	KeyFile string
-
+	KeyFile  string
 }
 
 func GetVersion() string {

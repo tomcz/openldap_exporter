@@ -33,7 +33,6 @@ const (
 	SchemeLDAPS = "ldaps"
 	SchemeLDAP  = "ldap"
 	SchemeLDAPI = "ldapi"
-
 )
 
 type query struct {
@@ -44,25 +43,23 @@ type query struct {
 }
 
 type LDAPConfig struct {
-
 	UseTLS      bool
 	UseStartTLS bool
 	Scheme      string
 	Addr        string
-	Host		string
-	Port		string
+	Host        string
+	Port        string
 	Protocol    string
 	Username    string
 	Password    string
 	TLSConfig   tls.Config
-
 }
 
-func (config *LDAPConfig) ParseAddr(addr string) error{
+func (config *LDAPConfig) ParseAddr(addr string) error {
 
 	var u *url.URL
 
-	u,err := url.Parse(addr)
+	u, err := url.Parse(addr)
 	if (err != nil) {
 		// Well, so far the easy way....
 		u = &url.URL{}
@@ -72,13 +69,13 @@ func (config *LDAPConfig) ParseAddr(addr string) error{
 
 		if strings.HasPrefix(addr, SchemeLDAPI) {
 			u.Scheme = SchemeLDAPI
-			u.Host, _ = url.QueryUnescape(strings.Replace(addr, SchemeLDAPI + "://", "", 1))
+			u.Host, _ = url.QueryUnescape(strings.Replace(addr, SchemeLDAPI+"://", "", 1))
 		} else if strings.HasPrefix(addr, SchemeLDAPS) {
 			u.Scheme = SchemeLDAPS
-			u.Host = strings.Replace(addr, SchemeLDAPS + "://", "", 1)
+			u.Host = strings.Replace(addr, SchemeLDAPS+"://", "", 1)
 		} else {
 			u.Scheme = SchemeLDAP
-			u.Host = strings.Replace(addr, SchemeLDAP + "://", "", 1)
+			u.Host = strings.Replace(addr, SchemeLDAP+"://", "", 1)
 		}
 
 	}
@@ -102,7 +99,6 @@ func (config *LDAPConfig) ParseAddr(addr string) error{
 }
 
 func (config *LDAPConfig) LoadCACert(cafile string) error {
-	
 
 	if _, err := os.Stat(cafile); os.IsNotExist(err) {
 		return errors.New("CA Certificate file does not exists")
@@ -127,25 +123,22 @@ func (config *LDAPConfig) LoadCACert(cafile string) error {
 
 }
 
-
 func NewLDAPConfig() LDAPConfig {
 
 	conf := LDAPConfig{}
 
-	conf.Scheme 		= SchemeLDAP
-	conf.Host 			= "localhost"
-	conf.Port			= "389"
-	conf.Addr 			= conf.Host + ":" + conf.Port
-	conf.Protocol 		= "tcp"
-	conf.UseTLS 		= false
-	conf.UseStartTLS 	= false
-	conf.TLSConfig		= tls.Config{}
-
+	conf.Scheme = SchemeLDAP
+	conf.Host = "localhost"
+	conf.Port = "389"
+	conf.Addr = conf.Host + ":" + conf.Port
+	conf.Protocol = "tcp"
+	conf.UseTLS = false
+	conf.UseStartTLS = false
+	conf.TLSConfig = tls.Config{}
 
 	return conf
 
 }
-
 
 var (
 	monitoredObjectGauge = prometheus.NewGaugeVec(
