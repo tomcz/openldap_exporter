@@ -90,10 +90,7 @@ Usage of ./target/openldap_exporter:
         Show version and exit
 ```
 
-## Building the exporter
+## Build
 
-1. Install Go from https://golang.org/
-2. Install `dep` from https://github.com/golang/dep
-3. Clone this repository and `cd` into its root.
-4. Fetch the third-party libraries: `make deps`
-5. Build the binary: `make build`
+1. Install Go 1.13 from https://golang.org/
+2. Build the binaries: `make build`
