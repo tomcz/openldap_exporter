@@ -1,12 +1,10 @@
 GITCOMMIT := $(shell git rev-parse --short HEAD 2>/dev/null)
-BASE_DIR := $(shell git rev-parse --show-toplevel 2>/dev/null)
-LDFLAGS := -X app/exporter.version=${GITCOMMIT}
-GO_PATH := ${BASE_DIR}/code
+LDFLAGS := -X github.com/tomcz/openldap_exporter.version=${GITCOMMIT}
 
-precommit: clean format lint build
+precommit: clean format build
 
-deps:
-	cd ${GO_PATH}/src/app && GOPATH=${GO_PATH} dep ensure
+travis: clean
+	GO111MODULE=on GOFLAGS='-mod=vendor' $(MAKE) build
 
 clean:
 	rm -rf target
@@ -15,20 +13,10 @@ target:
 	mkdir target
 
 format:
-	GOPATH=${GO_PATH} go fmt app/exporter/...
+	go fmt ./...
 
-lint:
-	GOPATH=${GO_PATH} go vet app/exporter/...
-
-compile = GOPATH=${GO_PATH} \
-	GOOS=$1 GOARCH=amd64 \
-	go build -ldflags "${LDFLAGS}" \
-	-o target/openldap_exporter-$1 \
-	app/exporter/cmd/openldap_exporter
+compile = GOOS=$1 GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o target/openldap_exporter-$1 ./cmd/openldap_exporter
 
 build: target
 	$(call compile,linux)
 	$(call compile,darwin)
-
-travis: clean deps
-	$(call compile,linux)
