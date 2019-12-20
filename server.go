@@ -14,9 +14,9 @@ func GetVersion() string {
 	return version
 }
 
-func StartMetricsServer(bindAddr string) {
+func StartMetricsServer(bindAddr string, path string) {
 	d := http.NewServeMux()
-	d.Handle("/metrics", promhttp.Handler())
+	d.Handle(path, promhttp.Handler())
 	d.HandleFunc("/version", showVersion)
 
 	err := http.ListenAndServe(bindAddr, d)
