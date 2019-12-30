@@ -13,7 +13,8 @@ target:
 	mkdir target
 
 format:
-	go fmt ./...
+	@echo "Running goimports ..."
+	@goimports -w -local github.com/tomcz/openldap_exporter $(shell find . -type f -name '*.go' | grep -v '/vendor/')
 
 compile = GOOS=$1 GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o target/openldap_exporter-$1 ./cmd/openldap_exporter
 
