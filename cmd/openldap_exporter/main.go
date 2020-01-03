@@ -48,10 +48,10 @@ func main() {
 		os.Exit(0)
 	}
 
-	log.Println("Starting prometheus HTTP metrics server on", *promAddr)
+	log.Println("starting Prometheus HTTP metrics server on", *promAddr)
 	go exporter.StartMetricsServer(*promAddr)
 
-	log.Println("Starting OpenLDAP scraper for", *ldapAddr)
+	log.Println("starting OpenLDAP scraper for", *ldapAddr)
 	for range time.Tick(*interval) {
 		exporter.ScrapeMetrics(*ldapAddr, *ldapUser, *ldapPass)
 	}

@@ -102,7 +102,7 @@ func objectClass(name string) string {
 func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
 	if err := scrapeAll(ldapAddr, ldapUser, ldapPass); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
-		log.Println("Scrape failed, error is:", err)
+		log.Println("scrape failed, error is:", err)
 	} else {
 		scrapeCounter.WithLabelValues("ok").Inc()
 	}

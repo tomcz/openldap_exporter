@@ -21,7 +21,7 @@ func StartMetricsServer(bindAddr string) {
 
 	err := http.ListenAndServe(bindAddr, d)
 	if err != nil {
-		log.Fatal("Failed to start metrics server, error is:", err)
+		log.Fatal("http listener failed, error is:", err)
 	}
 }
 
