@@ -84,6 +84,8 @@ Usage of ./target/openldap_exporter:
         OpenLDAP bind password (optional)
   -ldapUser string
         OpenLDAP bind username (optional)
+  -metrPath string
+        The path where to serve the metrics (default "/metrics")
   -promAddr string
         Bind address for prometheus HTTP metrics server (default ":9330")
   -version
