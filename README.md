@@ -90,6 +90,29 @@ Usage of ./target/openldap_exporter:
         Show version and exit
 ```
 
+## Configuration through environment variables
+
+The binary can also be configured via environment variables. The same parameters
+can be set as with the command line flags. If both command line flags and
+environment variables are defined, command line flags take precedence.
+
+Mapping of command line flags to environment variables is shown in the table
+below:
+
+| Cmd Flag | Env Var     |
+|----------|-------------|
+| interval | INTERVAL    |
+| ldapAddr | LDAP\_ADDR  |
+| ldapPass | LDAP\_PASS  |
+| ldapUser | LDAP\_USER_ |
+| promAddr | PROM\_ADDR_ |
+
+Example:
+
+```
+LDAP_PASS=secret ./openldap_exporter --ldapUser test
+```
+
 ## Build
 
 1. Install Go 1.13 from https://golang.org/
