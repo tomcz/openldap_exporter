@@ -99,13 +99,13 @@ environment variables are defined, command line flags take precedence.
 Mapping of command line flags to environment variables is shown in the table
 below:
 
-| Cmd Flag | Env Var     |
-|----------|-------------|
-| interval | INTERVAL    |
-| ldapAddr | LDAP\_ADDR  |
-| ldapPass | LDAP\_PASS  |
-| ldapUser | LDAP\_USER_ |
-| promAddr | PROM\_ADDR_ |
+| Cmd Flag | Env Var    |
+|----------|------------|
+| interval | INTERVAL   |
+| ldapAddr | LDAP\_ADDR |
+| ldapPass | LDAP\_PASS |
+| ldapUser | LDAP\_USER |
+| promAddr | PROM\_ADDR |
 
 Example:
 
