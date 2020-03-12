@@ -34,8 +34,7 @@ func defaultEnvDuration(envName string, defValue time.Duration) time.Duration {
 	}
 	parsedEnv, err := time.ParseDuration(envValue)
 	if err != nil {
-		log.Printf("Error parseing %s, invalid value: %s\n", envName, envValue)
-		os.Exit(1)
+		panic(err)
 	}
 	return parsedEnv
 }
