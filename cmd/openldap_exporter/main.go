@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -54,6 +55,16 @@ func main() {
 		Usage:  "Export OpenLDAP metrics to Prometheus",
 		Flags:  flags,
 		Action: runMain,
+		Commands: []*cli.Command{
+			{
+				Name:  "version",
+				Usage: "Show the version and exit",
+				Action: func(*cli.Context) error {
+					fmt.Println(exporter.GetVersion())
+					return nil
+				},
+			},
+		},
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatalln(err)
