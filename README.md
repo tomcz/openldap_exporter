@@ -72,7 +72,7 @@ openldap_scrape{result="ok"} 6985
 
 ## Configuration
 
-You can configure `openldap_exporter` using multiple configuration sources at the same time.
+You can configure `openldap_exporter` using multiple configuration sources at the same time. All configuration sources are optional, if none are provided then the default values will be used.
 
 The precedence of these configuration sources is as follows (from the highest to the lowest):
 
