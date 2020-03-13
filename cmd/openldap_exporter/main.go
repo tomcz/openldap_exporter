@@ -60,7 +60,7 @@ func main() {
 		}),
 		&cli.StringFlag{
 			Name:  config,
-			Usage: "Configure openldap_exporter from a `YAML_FILE`",
+			Usage: "Optional configuration from a `YAML_FILE`",
 		},
 	}
 	commands := []*cli.Command{

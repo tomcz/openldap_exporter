@@ -99,7 +99,7 @@ GLOBAL OPTIONS:
    --ldapUser value    OpenLDAP bind username (optional) [$LDAP_USER]
    --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]
    --interval value    Scrape interval (default: 30s) [$INTERVAL]
-   --config YAML_FILE  Configure openldap_exporter from a YAML_FILE
+   --config YAML_FILE  Optional configuration from a YAML_FILE
    --help, -h          show help (default: false)
 ```
 
