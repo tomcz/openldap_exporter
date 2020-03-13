@@ -70,47 +70,42 @@ openldap_scrape{result="ok"} 6985
 ...
 ```
 
-## Command line configuration
+## Configuration
 
-The binary itself is configured via command line flags:
+You can configure `openldap_exporter` using multiple configuration sources at the same time.
+
+The precedence of these configuration sources is as follows (from the highest to the lowest):
+
+1. Command line flags
+2. Environment variables
+3. YAML configuration file parameters
+4. Default values
 
 ```
-Usage of ./target/openldap_exporter:
-  -interval duration
-        Scrape interval (default 30s)
-  -ldapAddr string
-        Address of OpenLDAP server (default "localhost:389")
-  -ldapPass string
-        OpenLDAP bind password (optional)
-  -ldapUser string
-        OpenLDAP bind username (optional)
-  -promAddr string
-        Bind address for prometheus HTTP metrics server (default ":9330")
-  -version
-        Show version and exit
+NAME:
+   openldap_exporter - Export OpenLDAP metrics to Prometheus
+
+USAGE:
+   openldap_exporter [global options] command [command options] [arguments...]
+
+COMMANDS:
+   version  Show the version and exit
+   help, h  Shows a list of commands or help for one command
+
+GLOBAL OPTIONS:
+   --promAddr value    Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
+   --ldapAddr value    Address of OpenLDAP server (default: "localhost:389") [$LDAP_ADDR]
+   --ldapUser value    OpenLDAP bind username (optional) [$LDAP_USER]
+   --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]
+   --interval value    Scrape interval (default: 30s) [$INTERVAL]
+   --config YAML_FILE  Configure openldap_exporter from a YAML_FILE
+   --help, -h          show help (default: false)
 ```
-
-## Configuration through environment variables
-
-The binary can also be configured via environment variables. The same parameters
-can be set as with the command line flags. If both command line flags and
-environment variables are defined, command line flags take precedence.
-
-Mapping of command line flags to environment variables is shown in the table
-below:
-
-| Cmd Flag | Env Var    |
-|----------|------------|
-| interval | INTERVAL   |
-| ldapAddr | LDAP\_ADDR |
-| ldapPass | LDAP\_PASS |
-| ldapUser | LDAP\_USER |
-| promAddr | PROM\_ADDR |
 
 Example:
 
 ```
-LDAP_PASS=secret ./openldap_exporter --ldapUser test
+INTERVAL=10s /usr/sbin/openldap_exporter --ldapUser test --config /etc/slapd/exporter.yaml
 ```
 
 ## Build
