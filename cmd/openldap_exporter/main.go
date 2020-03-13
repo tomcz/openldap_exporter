@@ -1,57 +1,72 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
 	"os"
 	"time"
 
 	exporter "github.com/tomcz/openldap_exporter"
+
+	"github.com/urfave/cli/v2"
 )
 
-var (
-	promAddr = flag.String("promAddr", defaultEnvString("PROM_ADDR", ":9330"), "Bind address for prometheus HTTP metrics server")
-	ldapAddr = flag.String("ldapAddr", defaultEnvString("LDAP_ADDR", "localhost:389"), "Address of OpenLDAP server")
-	ldapUser = flag.String("ldapUser", defaultEnvString("LDAP_USER", ""), "OpenLDAP bind username (optional)")
-	ldapPass = flag.String("ldapPass", defaultEnvString("LDAP_PASS", ""), "OpenLDAP bind password (optional)")
-	interval = flag.Duration("interval", defaultEnvDuration("INTERVAL", 30*time.Second), "Scrape interval")
-	version  = flag.Bool("version", false, "Show version and exit")
+const (
+	promAddr = "promAddr"
+	ldapAddr = "ldapAddr"
+	ldapUser = "ldapUser"
+	ldapPass = "ldapPass"
+	interval = "interval"
 )
-
-func defaultEnvString(envName, defValue string) string {
-	envValue := os.Getenv(envName)
-	if envValue == "" {
-		return defValue
-	}
-	return envValue
-}
-
-func defaultEnvDuration(envName string, defValue time.Duration) time.Duration {
-	envValue := os.Getenv(envName)
-	if envValue == "" {
-		return defValue
-	}
-	parsedEnv, err := time.ParseDuration(envValue)
-	if err != nil {
-		panic(err)
-	}
-	return parsedEnv
-}
 
 func main() {
-	flag.Parse()
-
-	if *version {
-		fmt.Println(exporter.GetVersion())
-		os.Exit(0)
+	flags := []cli.Flag{
+		&cli.StringFlag{
+			Name:    promAddr,
+			Value:   ":9330",
+			Usage:   "Bind address for Prometheus HTTP metrics server",
+			EnvVars: []string{"PROM_ADDR"},
+		},
+		&cli.StringFlag{
+			Name:    ldapAddr,
+			Value:   "localhost:389",
+			Usage:   "Address of OpenLDAP server",
+			EnvVars: []string{"LDAP_ADDR"},
+		},
+		&cli.StringFlag{
+			Name:    ldapUser,
+			Usage:   "OpenLDAP bind username (optional)",
+			EnvVars: []string{"LDAP_USER"},
+		},
+		&cli.StringFlag{
+			Name:    ldapPass,
+			Usage:   "OpenLDAP bind password (optional)",
+			EnvVars: []string{"LDAP_PASS"},
+		},
+		&cli.DurationFlag{
+			Name:    interval,
+			Value:   30 * time.Second,
+			Usage:   "Scrape interval",
+			EnvVars: []string{"INTERVAL"},
+		},
 	}
-
-	log.Println("starting Prometheus HTTP metrics server on", *promAddr)
-	go exporter.StartMetricsServer(*promAddr)
-
-	log.Println("starting OpenLDAP scraper for", *ldapAddr)
-	for range time.Tick(*interval) {
-		exporter.ScrapeMetrics(*ldapAddr, *ldapUser, *ldapPass)
+	app := &cli.App{
+		Name:   "openldap_exporter",
+		Usage:  "Export OpenLDAP metrics to Prometheus",
+		Flags:  flags,
+		Action: runMain,
 	}
+	if err := app.Run(os.Args); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func runMain(c *cli.Context) error {
+	log.Println("starting Prometheus HTTP metrics server on", c.String(promAddr))
+	go exporter.StartMetricsServer(c.String(promAddr))
+
+	log.Println("starting OpenLDAP scraper for", c.String(ldapAddr))
+	for range time.Tick(c.Duration(interval)) {
+		exporter.ScrapeMetrics(c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass))
+	}
+	return nil
 }
