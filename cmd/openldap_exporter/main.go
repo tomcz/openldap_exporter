@@ -56,22 +56,23 @@ func main() {
 			Usage: "Configure openldap_exporter from a `YAML_FILE`",
 		},
 	}
-	app := &cli.App{
-		Name:   "openldap_exporter",
-		Usage:  "Export OpenLDAP metrics to Prometheus",
-		Before: altsrc.InitInputSourceWithContext(flags, altsrc.NewYamlSourceFromFlagFunc(config)),
-		Flags:  flags,
-		Action: runMain,
-		Commands: []*cli.Command{
-			{
-				Name:  "version",
-				Usage: "Show the version and exit",
-				Action: func(*cli.Context) error {
-					fmt.Println(exporter.GetVersion())
-					return nil
-				},
+	commands := []*cli.Command{
+		{
+			Name:  "version",
+			Usage: "Show the version and exit",
+			Action: func(*cli.Context) error {
+				fmt.Println(exporter.GetVersion())
+				return nil
 			},
 		},
+	}
+	app := &cli.App{
+		Name:     "openldap_exporter",
+		Usage:    "Export OpenLDAP metrics to Prometheus",
+		Before:   altsrc.InitInputSourceWithContext(flags, altsrc.NewYamlSourceFromFlagFunc(config)),
+		Flags:    flags,
+		Action:   runMain,
+		Commands: commands,
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatalln(err)
