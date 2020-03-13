@@ -76,7 +76,7 @@ func main() {
 	app := &cli.App{
 		Name:     "openldap_exporter",
 		Usage:    "Export OpenLDAP metrics to Prometheus",
-		Before:   altsrc.InitInputSourceWithContext(flags, OptionalYamlSourceFunc(config)),
+		Before:   altsrc.InitInputSourceWithContext(flags, optionalYamlSourceFunc(config)),
 		Flags:    flags,
 		Action:   runMain,
 		Commands: commands,
@@ -86,7 +86,7 @@ func main() {
 	}
 }
 
-func OptionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (altsrc.InputSourceContext, error) {
+func optionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (altsrc.InputSourceContext, error) {
 	return func(c *cli.Context) (altsrc.InputSourceContext, error) {
 		filePath := c.String(flagFileName)
 		if filePath != "" {
