@@ -94,6 +94,7 @@ COMMANDS:
 
 GLOBAL OPTIONS:
    --promAddr value    Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
+   --metrPath value    Path on which to expose Prometheus metrics (default: "/metrics") [$METRICS_PATH]
    --ldapAddr value    Address of OpenLDAP server (default: "localhost:389") [$LDAP_ADDR]
    --ldapUser value    OpenLDAP bind username (optional) [$LDAP_USER]
    --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]

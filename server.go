@@ -14,12 +14,12 @@ func GetVersion() string {
 	return version
 }
 
-func StartMetricsServer(bindAddr string) {
-	d := http.NewServeMux()
-	d.Handle("/metrics", promhttp.Handler())
-	d.HandleFunc("/version", showVersion)
+func StartMetricsServer(bindAddr, metricsPath string) {
+	mux := http.NewServeMux()
+	mux.Handle(metricsPath, promhttp.Handler())
+	mux.HandleFunc("/version", showVersion)
 
-	err := http.ListenAndServe(bindAddr, d)
+	err := http.ListenAndServe(bindAddr, mux)
 	if err != nil {
 		log.Fatal("http listener failed, error is:", err)
 	}

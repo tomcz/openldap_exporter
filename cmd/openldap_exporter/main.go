@@ -18,6 +18,7 @@ const (
 	ldapUser = "ldapUser"
 	ldapPass = "ldapPass"
 	interval = "interval"
+	metrics  = "metrPath"
 	config   = "config"
 )
 
@@ -28,6 +29,12 @@ func main() {
 			Value:   ":9330",
 			Usage:   "Bind address for Prometheus HTTP metrics server",
 			EnvVars: []string{"PROM_ADDR"},
+		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:    metrics,
+			Value:   "/metrics",
+			Usage:   "Path on which to expose Prometheus metrics",
+			EnvVars: []string{"METRICS_PATH"},
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    ldapAddr,
@@ -91,7 +98,7 @@ func OptionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (alt
 
 func runMain(c *cli.Context) error {
 	log.Println("starting Prometheus HTTP metrics server on", c.String(promAddr))
-	go exporter.StartMetricsServer(c.String(promAddr))
+	go exporter.StartMetricsServer(c.String(promAddr), c.String(metrics))
 
 	log.Println("starting OpenLDAP scraper for", c.String(ldapAddr))
 	for range time.Tick(c.Duration(interval)) {
