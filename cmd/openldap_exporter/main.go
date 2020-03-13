@@ -69,13 +69,23 @@ func main() {
 	app := &cli.App{
 		Name:     "openldap_exporter",
 		Usage:    "Export OpenLDAP metrics to Prometheus",
-		Before:   altsrc.InitInputSourceWithContext(flags, altsrc.NewYamlSourceFromFlagFunc(config)),
+		Before:   altsrc.InitInputSourceWithContext(flags, OptionalYamlSourceFunc(config)),
 		Flags:    flags,
 		Action:   runMain,
 		Commands: commands,
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatalln(err)
+	}
+}
+
+func OptionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (altsrc.InputSourceContext, error) {
+	return func(c *cli.Context) (altsrc.InputSourceContext, error) {
+		filePath := c.String(flagFileName)
+		if filePath != "" {
+			return altsrc.NewYamlSourceFromFile(filePath)
+		}
+		return &altsrc.MapInputSource{}, nil
 	}
 }
 
