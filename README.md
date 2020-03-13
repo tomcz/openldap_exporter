@@ -105,13 +105,14 @@ GLOBAL OPTIONS:
 Example:
 
 ```
-INTERVAL=10s /usr/sbin/openldap_exporter --ldapUser test --config /etc/slapd/exporter.yaml
+INTERVAL=10s /usr/sbin/openldap_exporter --promAddr ":8080" --config /etc/slapd/exporter.yaml
 ```
 
 Where `exporter.yaml` looks like this:
 
 ```yaml
 ---
+ldapUser: "cn=monitoring,cn=Monitor"
 ldapPass: "sekret"
 ```
 
