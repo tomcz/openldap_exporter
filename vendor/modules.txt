@@ -1,3 +1,5 @@
+# github.com/BurntSushi/toml v0.3.1
+github.com/BurntSushi/toml
 # github.com/beorn7/perks v1.0.1
 github.com/beorn7/perks/quantile
 # github.com/cespare/xxhash/v2 v2.1.0
@@ -32,9 +34,12 @@ github.com/russross/blackfriday/v2
 github.com/shurcooL/sanitized_anchor_name
 # github.com/urfave/cli/v2 v2.2.0
 github.com/urfave/cli/v2
+github.com/urfave/cli/v2/altsrc
 # golang.org/x/sys v0.0.0-20191010194322-b09406accb47
 golang.org/x/sys/windows
 # gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d
 gopkg.in/asn1-ber.v1
 # gopkg.in/ldap.v2 v2.5.1
 gopkg.in/ldap.v2
+# gopkg.in/yaml.v2 v2.2.2
+gopkg.in/yaml.v2
