@@ -108,6 +108,13 @@ Example:
 INTERVAL=10s /usr/sbin/openldap_exporter --ldapUser test --config /etc/slapd/exporter.yaml
 ```
 
+Where `exporter.yaml` looks like this:
+
+```yaml
+---
+ldapPass: "sekret"
+```
+
 ## Build
 
 1. Install Go 1.13 from https://golang.org/
