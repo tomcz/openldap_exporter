@@ -77,6 +77,7 @@ func main() {
 		Name:     "openldap_exporter",
 		Usage:    "Export OpenLDAP metrics to Prometheus",
 		Before:   altsrc.InitInputSourceWithContext(flags, optionalYamlSourceFunc(config)),
+		Version:  exporter.GetVersion(),
 		Flags:    flags,
 		Action:   runMain,
 		Commands: commands,
