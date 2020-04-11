@@ -1,5 +1,8 @@
 GITCOMMIT := $(shell git rev-parse --short HEAD 2>/dev/null)
-LDFLAGS := -X github.com/tomcz/openldap_exporter.version=${GITCOMMIT}
+GIT_TAG := $(shell git describe --tags 2>/dev/null)
+
+LDFLAGS := -X github.com/tomcz/openldap_exporter.commit=${GITCOMMIT}
+LDFLAGS := ${LDFLAGS} -X github.com/tomcz/openldap_exporter.tag=${GIT_TAG}
 
 precommit: clean format build
 

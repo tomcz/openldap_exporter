@@ -8,10 +8,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-var version string
+var commit string
+var tag string
 
 func GetVersion() string {
-	return version
+	return fmt.Sprintf("%s (%s)", tag, commit)
 }
 
 func StartMetricsServer(bindAddr, metricsPath string) {
@@ -31,5 +32,5 @@ func showVersion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	fmt.Fprintln(w, version)
+	fmt.Fprintln(w, GetVersion())
 }
