@@ -86,7 +86,7 @@ NAME:
    openldap_exporter - Export OpenLDAP metrics to Prometheus
 
 USAGE:
-   openldap_exporter-darwin [global options] [arguments...]
+   openldap_exporter [global options] [arguments...]
 
 VERSION:
    v2.0-3-gb8e3d38 (b8e3d38)
