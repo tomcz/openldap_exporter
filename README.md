@@ -86,13 +86,10 @@ NAME:
    openldap_exporter - Export OpenLDAP metrics to Prometheus
 
 USAGE:
-   openldap_exporter-darwin [global options] command [command options] [arguments...]
+   openldap_exporter-darwin [global options] [arguments...]
 
 VERSION:
-   v2.0-2-g46c9041 (46c9041)
-
-COMMANDS:
-   help, h  Shows a list of commands or help for one command
+   v2.0-3-gb8e3d38 (b8e3d38)
 
 GLOBAL OPTIONS:
    --promAddr value    Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]

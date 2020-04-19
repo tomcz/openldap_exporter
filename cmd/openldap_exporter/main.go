@@ -63,12 +63,13 @@ func main() {
 		},
 	}
 	app := &cli.App{
-		Name:    "openldap_exporter",
-		Usage:   "Export OpenLDAP metrics to Prometheus",
-		Before:  altsrc.InitInputSourceWithContext(flags, optionalYamlSourceFunc(config)),
-		Version: exporter.GetVersion(),
-		Flags:   flags,
-		Action:  runMain,
+		Name:            "openldap_exporter",
+		Usage:           "Export OpenLDAP metrics to Prometheus",
+		Before:          altsrc.InitInputSourceWithContext(flags, optionalYamlSourceFunc(config)),
+		Version:         exporter.GetVersion(),
+		HideHelpCommand: true,
+		Flags:           flags,
+		Action:          runMain,
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatalln(err)
