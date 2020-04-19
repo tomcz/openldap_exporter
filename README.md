@@ -86,10 +86,12 @@ NAME:
    openldap_exporter - Export OpenLDAP metrics to Prometheus
 
 USAGE:
-   openldap_exporter [global options] command [command options] [arguments...]
+   openldap_exporter-darwin [global options] command [command options] [arguments...]
+
+VERSION:
+   v2.0-2-g46c9041 (46c9041)
 
 COMMANDS:
-   version  Show the version and exit
    help, h  Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
@@ -101,6 +103,7 @@ GLOBAL OPTIONS:
    --interval value    Scrape interval (default: 30s) [$INTERVAL]
    --config YAML_FILE  Optional configuration from a YAML_FILE
    --help, -h          show help (default: false)
+   --version, -v       print the version (default: false)
 ```
 
 Example:
