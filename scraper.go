@@ -3,7 +3,10 @@ package openldap_exporter
 import (
 	"fmt"
 	"log"
+	"errors"
 	"strconv"
+	"regexp"
+	"net/url"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
@@ -109,7 +112,8 @@ func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
 }
 
 func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
-	l, err := ldap.Dial("tcp", ldapAddr)
+	//l, err := ldap.Dial("tcp", ldapAddr)
+	l, err := scrapeDial(ldapAddr)
 	if err != nil {
 		return err
 	}
@@ -129,6 +133,46 @@ func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
 		}
 	}
 	return errs
+}
+
+func scrapeDial(ldapAddr string) (*ldap.Conn, error) {
+	re := regexp.MustCompile(`^(?:(?P<ldapScheme>ldapi|ldap|ldaps):\/\/)?(?P<ldapHost>(?P<ipv4>(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])|(?P<ipv6>\[[a-z0-9\-._~%!$&'()*+,;=:]+\])|(?P<fqdn>[a-zA-Z0-9\-._~%]+))(?::(?P<ldapPort>\d+))?\/?$`)
+	
+	if match := re.FindStringSubmatch(ldapAddr); match != nil {
+		switch scheme := match[1]; scheme {
+		case "ldapi":
+			unixFilePath, err := url.PathUnescape(match[2])
+			if err != nil {
+				return nil, err
+			}
+
+			return ldap.Dial("unix", unixFilePath)
+
+		case "ldaps":
+			// port, err := strconv.Atoi(match[6])
+			// if err != nil {
+			// 	port = 636
+			// }
+			// hostPort := fmt.Sprintf("%s:%d", match[2], port)
+			// TODO: implement connection over LDAPS
+			// return ldap.DialTLS("tcp", hostPost, config)
+
+			return nil, errors.New("scraper: ldaps is not yet supported.")
+
+		default:
+			port, err := strconv.Atoi(match[6])
+			if err != nil {
+				port = 389
+			}
+			hostPort := fmt.Sprintf("%s:%d", match[2], port)
+
+			return ldap.Dial("tcp", hostPort)
+
+		}
+	} else {
+		err := errors.New("scraper: Cannot parse ldap address.")
+		return nil, err
+	}
 }
 
 func scrapeQuery(l *ldap.Conn, q *query) error {
