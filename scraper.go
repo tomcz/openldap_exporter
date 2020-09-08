@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"regexp"
 	"net/url"
+	"crypto/tls"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
@@ -102,8 +103,8 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
-	if err := scrapeAll(ldapAddr, ldapUser, ldapPass); err != nil {
+func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string, insecure bool) {
+	if err := scrapeAll(ldapAddr, ldapUser, ldapPass, insecure); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
 		log.Println("scrape failed, error is:", err)
 	} else {
@@ -111,9 +112,8 @@ func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
 	}
 }
 
-func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
-	//l, err := ldap.Dial("tcp", ldapAddr)
-	l, err := scrapeDial(ldapAddr)
+func scrapeAll(ldapAddr, ldapUser, ldapPass string, insecure bool) error {
+	l, err := scrapeDial(ldapAddr, insecure)
 	if err != nil {
 		return err
 	}
@@ -135,9 +135,13 @@ func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
 	return errs
 }
 
-func scrapeDial(ldapAddr string) (*ldap.Conn, error) {
+func scrapeDial(ldapAddr string, insecure bool) (*ldap.Conn, error) {
 	re := regexp.MustCompile(`^(?:(?P<ldapScheme>ldapi|ldap|ldaps):\/\/)?(?P<ldapHost>(?P<ipv4>(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])|(?P<ipv6>\[[a-z0-9\-._~%!$&'()*+,;=:]+\])|(?P<fqdn>[a-zA-Z0-9\-._~%]+))(?::(?P<ldapPort>\d+))?\/?$`)
 	
+	// match[1]: scheme
+	// match[2]: escaped path, when scheme is ldapi
+	//           hostname, when schemes are ldap and ldaps
+	// match[6]: port number (of type string)
 	if match := re.FindStringSubmatch(ldapAddr); match != nil {
 		switch scheme := match[1]; scheme {
 		case "ldapi":
@@ -149,15 +153,24 @@ func scrapeDial(ldapAddr string) (*ldap.Conn, error) {
 			return ldap.Dial("unix", unixFilePath)
 
 		case "ldaps":
-			// port, err := strconv.Atoi(match[6])
-			// if err != nil {
-			// 	port = 636
-			// }
-			// hostPort := fmt.Sprintf("%s:%d", match[2], port)
-			// TODO: implement connection over LDAPS
-			// return ldap.DialTLS("tcp", hostPost, config)
-
-			return nil, errors.New("scraper: ldaps is not yet supported.")
+			port, err := strconv.Atoi(match[6])
+			if err != nil {
+				port = 636
+			}
+			hostPort := fmt.Sprintf("%s:%d", match[2], port)
+			
+			var config *tls.Config
+			if insecure {
+				//log.Println("skipping certificate verification.")
+				config = &tls.Config {
+					InsecureSkipVerify: true,
+				}
+			} else {
+				config = &tls.Config {
+					ServerName: match[2],
+				}
+			}
+			return ldap.DialTLS("tcp", hostPort, config)
 
 		default:
 			port, err := strconv.Atoi(match[6])

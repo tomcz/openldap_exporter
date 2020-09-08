@@ -18,6 +18,7 @@ const (
 	ldapPass = "ldapPass"
 	interval = "interval"
 	metrics  = "metrPath"
+	insecure = "insecure"
 	config   = "config"
 )
 
@@ -57,6 +58,11 @@ func main() {
 			Usage:   "Scrape interval",
 			EnvVars: []string{"INTERVAL"},
 		}),
+		altsrc.NewBoolFlag(&cli.BoolFlag{
+			Name:	 insecure,
+			Usage:	 "Skip certificate verification, accepting any certificate presented by LDAPS servers (default: verify certificate)",
+			EnvVars: []string{"INSECURE"},
+		}),
 		&cli.StringFlag{
 			Name:  config,
 			Usage: "Optional configuration from a `YAML_FILE`",
@@ -92,7 +98,7 @@ func runMain(c *cli.Context) error {
 
 	log.Println("starting OpenLDAP scraper for", c.String(ldapAddr))
 	for range time.Tick(c.Duration(interval)) {
-		exporter.ScrapeMetrics(c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass))
+		exporter.ScrapeMetrics(c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass), c.Bool(insecure))
 	}
 	return nil
 }
