@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
@@ -22,12 +23,23 @@ const (
 
 	monitorOperation   = "monitorOperation"
 	monitorOpCompleted = "monitorOpCompleted"
+
+	operationBind   = "OperationBind"
+	operationSearch = "OperationSearch"
 )
 
 type query struct {
 	baseDN       string
 	searchFilter string
 	searchAttr   string
+	metric       *prometheus.GaugeVec
+}
+
+type performance struct {
+	baseDN       string
+	searchAttr   string
+	searchFilter string
+	operation    string
 	metric       *prometheus.GaugeVec
 }
 
@@ -64,6 +76,14 @@ var (
 		},
 		[]string{"result"},
 	)
+	monitorPerformanceGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Subsystem: "openldap",
+			Name:      "performance",
+			Help:      "Bind, Search ldap performance",
+		},
+		[]string{"Performance"},
+	)
 	queries = []query{
 		{
 			baseDN:       baseDN,
@@ -84,6 +104,20 @@ var (
 			metric:       monitorOperationGauge,
 		},
 	}
+
+	performances = []performance{
+		{
+			operation: operationBind,
+			metric:    monitorPerformanceGauge,
+		},
+		{
+			baseDN:       baseDN,
+			searchFilter: objectClass(monitoredObject),
+			searchAttr:   monitoredInfo,
+			operation:    operationSearch,
+			metric:       monitorPerformanceGauge,
+		},
+	}
 )
 
 func init() {
@@ -91,6 +125,7 @@ func init() {
 		monitoredObjectGauge,
 		monitorCounterObjectGauge,
 		monitorOperationGauge,
+		monitorPerformanceGauge,
 		scrapeCounter,
 	)
 }
@@ -128,9 +163,43 @@ func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
 			errs = multierror.Append(errs, err)
 		}
 	}
+	for _, p := range performances {
+		if err := scrapePerformance(l, &p, ldapUser, ldapPass); err != nil {
+			errs = multierror.Append(errs, err)
+		}
+	}
 	return errs
 }
-
+func scrapePerformance(l *ldap.Conn, p *performance, ldapUser string, ldapPass string) error {
+	if p.operation == "OperationBind" {
+		bindBefore := time.Now().UnixNano()
+		err := l.Bind(ldapUser, ldapPass)
+		if err != nil {
+			p.metric.WithLabelValues(p.operation).Set(-1)
+			return err
+		} else {
+			bindAfter := time.Now().UnixNano()
+			diff := float64(bindAfter-bindBefore) / 1000000
+			p.metric.WithLabelValues(p.operation).Set(diff)
+		}
+	}
+	if p.operation == "OperationSearch" {
+		req := ldap.NewSearchRequest(
+			p.baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
+			p.searchFilter, []string{"dn", p.searchAttr}, nil,
+		)
+		searchBefore := time.Now().UnixNano()
+		_, err := l.Search(req)
+		if err != nil {
+			p.metric.WithLabelValues(p.operation).Set(-1)
+		} else {
+			searchAfter := time.Now().UnixNano()
+			diff := float64(searchAfter-searchBefore) / 1000000
+			p.metric.WithLabelValues(p.operation).Set(diff)
+		}
+	}
+	return nil
+}
 func scrapeQuery(l *ldap.Conn, q *query) error {
 	req := ldap.NewSearchRequest(
 		q.baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
