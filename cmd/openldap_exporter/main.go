@@ -16,9 +16,18 @@ const (
 	ldapAddr = "ldapAddr"
 	ldapUser = "ldapUser"
 	ldapPass = "ldapPass"
+    bindLocalUser = "bindLocalUser"
+    bindLocalPass = "bindLocalPass"
+    bindTestUser = "bindTestUser"
+    bindTestPass = "bindTestPass"
+    bindTestAddr = "bindTestAddr"
+    searchTestFilter = "searchTestFilter"
+    searchBaseDN = "searchBaseDN"
 	interval = "interval"
 	metrics  = "metrPath"
 	config   = "config"
+    saslAuthd = "saslAuthd"
+    bindTestUserAd = "bindTestUserAd"
 )
 
 func main() {
@@ -41,6 +50,12 @@ func main() {
 			Usage:   "Address of OpenLDAP server",
 			EnvVars: []string{"LDAP_ADDR"},
 		}),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    bindTestAddr,
+            Value:   "localhost:389",
+            Usage:   "Address of OpenLDAP Test Bind server",
+            EnvVars: []string{"LDAP_ADDR"},
+        }),
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    ldapUser,
 			Usage:   "OpenLDAP bind username (optional)",
@@ -51,6 +66,46 @@ func main() {
 			Usage:   "OpenLDAP bind password (optional)",
 			EnvVars: []string{"LDAP_PASS"},
 		}),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    bindLocalUser,
+            Usage:   "OpenLDAP local bind username test (optional)",
+            EnvVars: []string{"BIND_LOCAL_USER"},
+        }),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    bindLocalPass,
+            Usage:   "OpenLDAP local bind pass test (optional)",
+            EnvVars: []string{"BIND_LOCAL_PASS"},
+        }),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    bindTestUser,
+            Usage:   "OpenLDAP bind test username (optional)",
+            EnvVars: []string{"BIND_TEST_USER"},
+        }),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    bindTestPass,
+            Usage:   "OpenLDAP bind test password (optional)",
+            EnvVars: []string{"BIND_TEST_PASS"},
+        }),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    saslAuthd,
+            Usage:   "SASLAUTHD username (optional)",
+            EnvVars: []string{"SASLAUTHD_USER"},
+        }),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    bindTestUserAd,
+            Usage:   "OpenLDAP bind test username (optional)",
+            EnvVars: []string{"BIND_TEST_USER_AD"},
+        }),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    searchTestFilter,
+            Usage:   "Search Filter (optional)",
+            EnvVars: []string{"SEARCH_FILTER"},
+        }),
+        altsrc.NewStringFlag(&cli.StringFlag{
+            Name:    searchBaseDN,
+            Usage:   "Search BaseDN (optional)",
+            EnvVars: []string{"SEARCH_BASEDN"},
+        }),
 		altsrc.NewDurationFlag(&cli.DurationFlag{
 			Name:    interval,
 			Value:   30 * time.Second,
@@ -92,7 +147,7 @@ func runMain(c *cli.Context) error {
 
 	log.Println("starting OpenLDAP scraper for", c.String(ldapAddr))
 	for range time.Tick(c.Duration(interval)) {
-		exporter.ScrapeMetrics(c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass))
+		exporter.ScrapeMetrics(c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass),c.String(bindTestUser),c.String(bindTestPass),c.String(bindTestAddr),c.String(saslAuthd),c.String(bindTestUserAd),c.String(bindLocalUser),c.String(bindLocalPass),c.String(searchTestFilter),c.String(searchBaseDN))
 	}
 	return nil
 }

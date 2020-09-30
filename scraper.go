@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/ldap.v2"
+	"os/exec"
 )
 
 const (
@@ -26,6 +27,10 @@ const (
 
 	operationBind   = "OperationBind"
 	operationSearch = "OperationSearch"
+    operationBindTestLocal = "OperationBindTestLocal"
+    operationSASLAUTHD = "OperationSASLAUTHD"
+    operationBindTestForeign = "OperationBindTestForeign"
+
 )
 
 type query struct {
@@ -117,6 +122,18 @@ var (
 			operation:    operationSearch,
 			metric:       monitorPerformanceGauge,
 		},
+        {
+            operation: operationBindTestLocal,
+            metric:    monitorPerformanceGauge,
+        },
+        {
+		    operation: operationSASLAUTHD,
+		    metric: monitorPerformanceGauge,
+        },
+        {
+		    operation: operationBindTestForeign,
+		    metric: monitorPerformanceGauge,
+        },
 	}
 )
 
@@ -134,8 +151,8 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
-	if err := scrapeAll(ldapAddr, ldapUser, ldapPass); err != nil {
+func ScrapeMetrics(ldapAddr, ldapUser, ldapPass,bindTestUser,bindTestPass,bindTestAddr, saslAuthd,bindTestUserAd,bindLocalUser,bindLocalPass,searchTestFilter,searchBaseDN string) {
+	if err := scrapeAll(ldapAddr, ldapUser, ldapPass,bindTestUser,bindTestPass,bindTestAddr,saslAuthd,bindTestUserAd,bindLocalUser,bindLocalPass,searchTestFilter,searchBaseDN); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
 		log.Println("scrape failed, error is:", err)
 	} else {
@@ -143,7 +160,7 @@ func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
 	}
 }
 
-func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
+func scrapeAll(ldapAddr, ldapUser, ldapPass,bindTestUser,bindTestPass,bindTestAddr,saslAuthd,bindTestUserAd,bindLocalUser,bindLocalPass,searchTestFilter,searchBaseDN string) error {
 	l, err := ldap.Dial("tcp", ldapAddr)
 	if err != nil {
 		return err
@@ -164,16 +181,16 @@ func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
 		}
 	}
 	for _, p := range performances {
-		if err := scrapePerformance(l, &p, ldapUser, ldapPass); err != nil {
+		if err := scrapePerformance(l, &p,bindTestUser,bindTestPass,bindTestAddr,saslAuthd,bindTestUserAd,bindLocalUser,bindLocalPass,searchTestFilter,searchBaseDN); err != nil {
 			errs = multierror.Append(errs, err)
 		}
 	}
 	return errs
 }
-func scrapePerformance(l *ldap.Conn, p *performance, ldapUser string, ldapPass string) error {
+func scrapePerformance(l *ldap.Conn, p *performance,bindTestUser,bindTestPass,bindTestAddr,saslAuthd,bindTestUserAd,bindLocalUser,bindLocalPass,searchTestFilter,searchBaseDN string) error {
 	if p.operation == "OperationBind" {
 		bindBefore := time.Now().UnixNano()
-		err := l.Bind(ldapUser, ldapPass)
+		err := l.Bind(bindLocalUser, bindLocalPass)
 		if err != nil {
 			p.metric.WithLabelValues(p.operation).Set(-1)
 			return err
@@ -184,13 +201,22 @@ func scrapePerformance(l *ldap.Conn, p *performance, ldapUser string, ldapPass s
 		}
 	}
 	if p.operation == "OperationSearch" {
+        filter := fmt.Sprintf("(%s)", ldap.EscapeFilter(searchTestFilter))
 		req := ldap.NewSearchRequest(
-			p.baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-			p.searchFilter, []string{"dn", p.searchAttr}, nil,
+			searchBaseDN,
+			ldap.ScopeWholeSubtree,
+			ldap.NeverDerefAliases,
+			0,
+			0,
+			false,
+			filter,
+			[]string{"dn", "cn"},
+            nil,
 		)
 		searchBefore := time.Now().UnixNano()
 		_, err := l.Search(req)
 		if err != nil {
+		    fmt.Println(err)
 			p.metric.WithLabelValues(p.operation).Set(-1)
 		} else {
 			searchAfter := time.Now().UnixNano()
@@ -198,6 +224,49 @@ func scrapePerformance(l *ldap.Conn, p *performance, ldapUser string, ldapPass s
 			p.metric.WithLabelValues(p.operation).Set(diff)
 		}
 	}
+    if p.operation == "OperationBindTestLocal" {
+        bindBefore := time.Now().UnixNano()
+        err := l.Bind(bindTestUser, bindTestPass)
+        if err != nil {
+            p.metric.WithLabelValues(p.operation).Set(-1)
+            return err
+        } else {
+            bindAfter := time.Now().UnixNano()
+            diff := float64(bindAfter-bindBefore) / 1000000
+            p.metric.WithLabelValues(p.operation).Set(diff)
+        }
+    }
+    if p.operation == "OperationSASLAUTHD" {
+        saslBefore :=  time.Now().UnixNano()
+        cmd := exec.Command("testsaslauthd","-u",saslAuthd,"-p",bindTestPass)
+        err := cmd.Run()
+        if err != nil {
+            p.metric.WithLabelValues(p.operation).Set(-1)
+            return err
+        } else {
+            saslAfter := time.Now().UnixNano()
+            diff := float64(saslAfter-saslBefore) / 1000000
+            p.metric.WithLabelValues(p.operation).Set(diff)
+        }
+    }
+    if p.operation =="OperationBindTestForeign" {
+        d, err := ldap.Dial("tcp", bindTestAddr)
+        if err != nil {
+            return err
+        }
+        defer d.Close()
+        bindForeignBefore := time.Now().UnixNano()
+        err = d.Bind(bindTestUserAd, bindTestPass)
+        if err != nil {
+            p.metric.WithLabelValues(p.operation).Set(-1)
+            return err
+        } else {
+            bindForeignAfter := time.Now().UnixNano()
+            diff := float64(bindForeignAfter-bindForeignBefore) / 1000000
+            p.metric.WithLabelValues(p.operation).Set(diff)
+        }
+
+    }
 	return nil
 }
 func scrapeQuery(l *ldap.Conn, q *query) error {
