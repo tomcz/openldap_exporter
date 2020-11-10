@@ -13,6 +13,7 @@ import (
 
 const (
 	promAddr = "promAddr"
+	ldapNet  = "ldapNet"
 	ldapAddr = "ldapAddr"
 	ldapUser = "ldapUser"
 	ldapPass = "ldapPass"
@@ -34,6 +35,12 @@ func main() {
 			Value:   "/metrics",
 			Usage:   "Path on which to expose Prometheus metrics",
 			EnvVars: []string{"METRICS_PATH"},
+		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:    ldapNet,
+			Value:   "tcp",
+			Usage:   "Network of OpenLDAP server",
+			EnvVars: []string{"LDAP_NET"},
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    ldapAddr,
@@ -92,7 +99,7 @@ func runMain(c *cli.Context) error {
 
 	log.Println("starting OpenLDAP scraper for", c.String(ldapAddr))
 	for range time.Tick(c.Duration(interval)) {
-		exporter.ScrapeMetrics(c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass))
+		exporter.ScrapeMetrics(c.String(ldapNet), c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass))
 	}
 	return nil
 }

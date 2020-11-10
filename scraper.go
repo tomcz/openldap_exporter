@@ -99,8 +99,8 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
-	if err := scrapeAll(ldapAddr, ldapUser, ldapPass); err != nil {
+func ScrapeMetrics(ldapNet, ldapAddr, ldapUser, ldapPass string) {
+	if err := scrapeAll(ldapNet, ldapAddr, ldapUser, ldapPass); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
 		log.Println("scrape failed, error is:", err)
 	} else {
@@ -108,8 +108,8 @@ func ScrapeMetrics(ldapAddr, ldapUser, ldapPass string) {
 	}
 }
 
-func scrapeAll(ldapAddr, ldapUser, ldapPass string) error {
-	l, err := ldap.Dial("tcp", ldapAddr)
+func scrapeAll(ldapNet, ldapAddr, ldapUser, ldapPass string) error {
+	l, err := ldap.Dial(ldapNet, ldapAddr)
 	if err != nil {
 		return err
 	}
