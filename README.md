@@ -89,11 +89,12 @@ USAGE:
    openldap_exporter [global options] [arguments...]
 
 VERSION:
-   v2.0-3-gb8e3d38 (b8e3d38)
+   v2.0-7-gf81504e (f81504e)
 
 GLOBAL OPTIONS:
    --promAddr value    Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
    --metrPath value    Path on which to expose Prometheus metrics (default: "/metrics") [$METRICS_PATH]
+   --ldapNet value     Network of OpenLDAP server (default: "tcp") [$LDAP_NET]
    --ldapAddr value    Address of OpenLDAP server (default: "localhost:389") [$LDAP_ADDR]
    --ldapUser value    OpenLDAP bind username (optional) [$LDAP_USER]
    --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]
