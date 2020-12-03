@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
@@ -99,8 +100,22 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func ScrapeMetrics(ldapNet, ldapAddr, ldapUser, ldapPass string) {
-	if err := scrapeAll(ldapNet, ldapAddr, ldapUser, ldapPass); err != nil {
+type Scraper struct {
+	Net  string
+	Addr string
+	User string
+	Pass string
+	Tick time.Duration
+}
+
+func (s *Scraper) Start() {
+	for range time.Tick(s.Tick) {
+		s.runOnce()
+	}
+}
+
+func (s *Scraper) runOnce() {
+	if err := s.scrape(); err != nil {
 		scrapeCounter.WithLabelValues("fail").Inc()
 		log.Println("scrape failed, error is:", err)
 	} else {
@@ -108,27 +123,27 @@ func ScrapeMetrics(ldapNet, ldapAddr, ldapUser, ldapPass string) {
 	}
 }
 
-func scrapeAll(ldapNet, ldapAddr, ldapUser, ldapPass string) error {
-	l, err := ldap.Dial(ldapNet, ldapAddr)
+func (s *Scraper) scrape() error {
+	l, err := ldap.Dial(s.Net, s.Addr)
 	if err != nil {
-		return err
+		return fmt.Errorf("dial failed: %w", err)
 	}
 	defer l.Close()
 
-	if ldapUser != "" && ldapPass != "" {
-		err = l.Bind(ldapUser, ldapPass)
+	if s.User != "" && s.Pass != "" {
+		err = l.Bind(s.User, s.Pass)
 		if err != nil {
-			return err
+			return fmt.Errorf("bind failed: %w", err)
 		}
 	}
 
-	var errs error
+	var ret error
 	for _, q := range queries {
 		if err := scrapeQuery(l, &q); err != nil {
-			errs = multierror.Append(errs, err)
+			ret = multierror.Append(ret, err)
 		}
 	}
-	return errs
+	return ret
 }
 
 func scrapeQuery(l *ldap.Conn, q *query) error {
@@ -138,7 +153,7 @@ func scrapeQuery(l *ldap.Conn, q *query) error {
 	)
 	sr, err := l.Search(req)
 	if err != nil {
-		return err
+		return fmt.Errorf("search failed: %w", err)
 	}
 	for _, entry := range sr.Entries {
 		val := entry.GetAttributeValue(q.searchAttr)

@@ -97,9 +97,14 @@ func runMain(c *cli.Context) error {
 	log.Println("starting Prometheus HTTP metrics server on", c.String(promAddr))
 	go exporter.StartMetricsServer(c.String(promAddr), c.String(metrics))
 
-	log.Println("starting OpenLDAP scraper for", c.String(ldapAddr))
-	for range time.Tick(c.Duration(interval)) {
-		exporter.ScrapeMetrics(c.String(ldapNet), c.String(ldapAddr), c.String(ldapUser), c.String(ldapPass))
+	scraper := &exporter.Scraper{
+		Net:  c.String(ldapNet),
+		Addr: c.String(ldapAddr),
+		User: c.String(ldapUser),
+		Pass: c.String(ldapPass),
+		Tick: c.Duration(interval),
 	}
+	log.Println("starting OpenLDAP scraper for", scraper.Addr)
+	scraper.Start()
 	return nil
 }
