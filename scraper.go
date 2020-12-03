@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -37,7 +38,7 @@ var (
 		prometheus.GaugeOpts{
 			Subsystem: "openldap",
 			Name:      "monitored_object",
-			Help:      baseDN + " " + objectClass(monitoredObject) + " " + monitoredInfo,
+			Help:      help(baseDN, objectClass(monitoredObject), monitoredInfo),
 		},
 		[]string{"dn"},
 	)
@@ -45,7 +46,7 @@ var (
 		prometheus.GaugeOpts{
 			Subsystem: "openldap",
 			Name:      "monitor_counter_object",
-			Help:      baseDN + " " + objectClass(monitorCounterObject) + " " + monitorCounter,
+			Help:      help(baseDN, objectClass(monitorCounterObject), monitorCounter),
 		},
 		[]string{"dn"},
 	)
@@ -53,7 +54,7 @@ var (
 		prometheus.GaugeOpts{
 			Subsystem: "openldap",
 			Name:      "monitor_operation",
-			Help:      opsBaseDN + " " + objectClass(monitorOperation) + " " + monitorOpCompleted,
+			Help:      help(opsBaseDN, objectClass(monitorOperation), monitorOpCompleted),
 		},
 		[]string{"dn"},
 	)
@@ -94,6 +95,10 @@ func init() {
 		monitorOperationGauge,
 		scrapeCounter,
 	)
+}
+
+func help(msg ...string) string {
+	return strings.Join(msg, " ")
 }
 
 func objectClass(name string) string {
