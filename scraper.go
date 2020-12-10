@@ -66,7 +66,7 @@ var (
 		},
 		[]string{"result"},
 	)
-	queries = []query{
+	queries = []*query{
 		{
 			baseDN:       baseDN,
 			searchFilter: objectClass(monitoredObject),
@@ -144,7 +144,7 @@ func (s *Scraper) scrape() error {
 
 	var ret error
 	for _, q := range queries {
-		if err := scrapeQuery(l, &q); err != nil {
+		if err := scrapeQuery(l, q); err != nil {
 			ret = multierror.Append(ret, err)
 		}
 	}
