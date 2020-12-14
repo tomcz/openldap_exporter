@@ -22,7 +22,7 @@ func StartMetricsServer(bindAddr, metricsPath string) {
 
 	err := http.ListenAndServe(bindAddr, mux)
 	if err != nil {
-		log.Fatal("http listener failed, error is:", err)
+		log.Fatalln("http listener failed, error is:", err)
 	}
 }
 
