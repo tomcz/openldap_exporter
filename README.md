@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/tomcz/openldap_exporter.svg?branch=master)](https://travis-ci.org/tomcz/openldap_exporter)
-
 # OpenLDAP Prometheus Exporter
 
 This is a simple service that scrapes metrics from OpenLDAP and exports them via HTTP for Prometheus consumption.

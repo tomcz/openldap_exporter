@@ -1,6 +1,6 @@
 module github.com/tomcz/openldap_exporter
 
-go 1.13
+go 1.16
 
 require (
 	github.com/hashicorp/go-multierror v1.0.0
