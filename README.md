@@ -87,7 +87,7 @@ USAGE:
    openldap_exporter [global options] [arguments...]
 
 VERSION:
-   v2.0-7-gf81504e (f81504e)
+   v2.1.2
 
 GLOBAL OPTIONS:
    --promAddr value    Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
@@ -97,6 +97,7 @@ GLOBAL OPTIONS:
    --ldapUser value    OpenLDAP bind username (optional) [$LDAP_USER]
    --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]
    --interval value    Scrape interval (default: 30s) [$INTERVAL]
+   --webCfgFile FILE   Prometheus metrics web config FILE (optional) [$WEB_CFG_FILE]
    --config YAML_FILE  Optional configuration from a YAML_FILE
    --help, -h          show help (default: false)
    --version, -v       print the version (default: false)
@@ -116,7 +117,12 @@ ldapUser: "cn=monitoring,cn=Monitor"
 ldapPass: "sekret"
 ```
 
+NOTES:
+
+* `--ldapNet` allows you to configure `tcp` or `unix` socket connections to your co-located OpenLDAP server.
+* `--webCfgFile` can be used to provide authentiction and TLS configuration for the [prometheus web exporter](https://github.com/prometheus/exporter-toolkit/tree/master/web).
+
 ## Build
 
-1. Install Go 1.13 from https://golang.org/
+1. Install Go 1.16 from https://golang.org/
 2. Build the binaries: `make build`

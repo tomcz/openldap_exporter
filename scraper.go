@@ -1,13 +1,13 @@
 package openldap_exporter
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/hashicorp/go-multierror"
 	"github.com/prometheus/client_golang/prometheus"
 	"gopkg.in/ldap.v2"
 )
@@ -113,39 +113,47 @@ type Scraper struct {
 	Tick time.Duration
 }
 
-func (s *Scraper) Start() {
-	for range time.Tick(s.Tick) {
-		s.runOnce()
+func (s *Scraper) Start(ctx context.Context) error {
+	ticker := time.NewTicker(s.Tick)
+	for {
+		select {
+		case <-ticker.C:
+			s.runOnce()
+		case <-ctx.Done():
+			return nil
+		}
 	}
 }
 
 func (s *Scraper) runOnce() {
-	if err := s.scrape(); err != nil {
-		scrapeCounter.WithLabelValues("fail").Inc()
-		log.Println("scrape failed, error is:", err)
-	} else {
+	if s.scrape() {
 		scrapeCounter.WithLabelValues("ok").Inc()
+	} else {
+		scrapeCounter.WithLabelValues("fail").Inc()
 	}
 }
 
-func (s *Scraper) scrape() error {
+func (s *Scraper) scrape() bool {
 	l, err := ldap.Dial(s.Net, s.Addr)
 	if err != nil {
-		return fmt.Errorf("dial failed: %w", err)
+		log.Printf("dial failed: %v\n", err)
+		return false
 	}
 	defer l.Close()
 
 	if s.User != "" && s.Pass != "" {
 		err = l.Bind(s.User, s.Pass)
 		if err != nil {
-			return fmt.Errorf("bind failed: %w", err)
+			log.Printf("bind failed: %v\n", err)
+			return false
 		}
 	}
 
-	var ret error
+	ret := true
 	for _, q := range queries {
 		if err := scrapeQuery(l, q); err != nil {
-			ret = multierror.Append(ret, err)
+			log.Println(err.Error())
+			ret = false
 		}
 	}
 	return ret

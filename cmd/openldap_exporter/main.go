@@ -1,25 +1,30 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	exporter "github.com/tomcz/openldap_exporter"
 
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
-	promAddr = "promAddr"
-	ldapNet  = "ldapNet"
-	ldapAddr = "ldapAddr"
-	ldapUser = "ldapUser"
-	ldapPass = "ldapPass"
-	interval = "interval"
-	metrics  = "metrPath"
-	config   = "config"
+	promAddr   = "promAddr"
+	ldapNet    = "ldapNet"
+	ldapAddr   = "ldapAddr"
+	ldapUser   = "ldapUser"
+	ldapPass   = "ldapPass"
+	interval   = "interval"
+	metrics    = "metrPath"
+	webCfgFile = "webCfgFile"
+	config     = "config"
 )
 
 func main() {
@@ -64,6 +69,11 @@ func main() {
 			Usage:   "Scrape interval",
 			EnvVars: []string{"INTERVAL"},
 		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:    webCfgFile,
+			Usage:   "Prometheus metrics web config `FILE` (optional)",
+			EnvVars: []string{"WEB_CFG_FILE"},
+		}),
 		&cli.StringFlag{
 			Name:  config,
 			Usage: "Optional configuration from a `YAML_FILE`",
@@ -94,8 +104,7 @@ func optionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (alt
 }
 
 func runMain(c *cli.Context) error {
-	log.Println("starting Prometheus HTTP metrics server on", c.String(promAddr))
-	go exporter.StartMetricsServer(c.String(promAddr), c.String(metrics))
+	server := exporter.NewMetricsServer(c.String(promAddr), c.String(metrics), c.String(webCfgFile))
 
 	scraper := &exporter.Scraper{
 		Net:  c.String(ldapNet),
@@ -104,7 +113,33 @@ func runMain(c *cli.Context) error {
 		Pass: c.String(ldapPass),
 		Tick: c.Duration(interval),
 	}
-	log.Println("starting OpenLDAP scraper for", scraper.Addr)
-	scraper.Start()
-	return nil
+
+	ctx, cancel := context.WithCancel(context.Background())
+	var group errgroup.Group
+	group.Go(func() error {
+		defer cancel()
+		log.Printf("starting Prometheus HTTP metrics server on %s\n", c.String(promAddr))
+		return server.Start()
+	})
+	group.Go(func() error {
+		defer cancel()
+		log.Printf("starting OpenLDAP scraper for %s://%s\n", scraper.Net, scraper.Addr)
+		return scraper.Start(ctx)
+	})
+	group.Go(func() error {
+		defer func() {
+			cancel()
+			server.Stop()
+		}()
+		signalChan := make(chan os.Signal, 1)
+		signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+		select {
+		case <-signalChan:
+			log.Println("shutdown received")
+			return nil
+		case <-ctx.Done():
+			return nil
+		}
+	})
+	return group.Wait()
 }
