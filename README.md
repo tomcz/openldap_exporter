@@ -119,8 +119,8 @@ ldapPass: "sekret"
 
 NOTES:
 
-* `--ldapNet` allows you to configure `tcp` or `unix` socket connections to your co-located OpenLDAP server.
-* `--webCfgFile` can be used to provide authentiction and TLS configuration for the [prometheus web exporter](https://github.com/prometheus/exporter-toolkit/tree/master/web).
+* `ldapNet` allows you to configure `tcp` or `unix` socket connections to your co-located OpenLDAP server.
+* `webCfgFile` can be used to provide authentication and TLS configuration for the [prometheus web exporter](https://github.com/prometheus/exporter-toolkit/tree/master/web).
 
 ## Build
 
