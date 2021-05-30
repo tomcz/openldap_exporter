@@ -152,7 +152,7 @@ func (s *Scraper) scrape() bool {
 	ret := true
 	for _, q := range queries {
 		if err := scrapeQuery(l, q); err != nil {
-			log.Println(err.Error())
+			log.Printf("query failed: %v\n", err)
 			ret = false
 		}
 	}
@@ -166,7 +166,7 @@ func scrapeQuery(l *ldap.Conn, q *query) error {
 	)
 	sr, err := l.Search(req)
 	if err != nil {
-		return fmt.Errorf("search failed: %w", err)
+		return err
 	}
 	for _, entry := range sr.Entries {
 		val := entry.GetAttributeValue(q.searchAttr)
