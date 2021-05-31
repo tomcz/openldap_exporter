@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,6 +9,7 @@ import (
 
 	exporter "github.com/tomcz/openldap_exporter"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"golang.org/x/sync/errgroup"
@@ -88,9 +88,11 @@ func main() {
 		Flags:           flags,
 		Action:          runMain,
 	}
+	log.Info("service starting")
 	if err := app.Run(os.Args); err != nil {
-		log.Fatalln(err)
+		log.WithError(err).Fatal("service failed")
 	}
+	log.Info("service stopped")
 }
 
 func optionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (altsrc.InputSourceContext, error) {
@@ -118,12 +120,10 @@ func runMain(c *cli.Context) error {
 	var group errgroup.Group
 	group.Go(func() error {
 		defer cancel()
-		log.Printf("starting Prometheus HTTP metrics server on %s\n", c.String(promAddr))
 		return server.Start()
 	})
 	group.Go(func() error {
 		defer cancel()
-		log.Printf("starting OpenLDAP scraper for %s://%s\n", scraper.Net, scraper.Addr)
 		return scraper.Start(ctx)
 	})
 	group.Go(func() error {
@@ -135,7 +135,7 @@ func runMain(c *cli.Context) error {
 		signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
 		select {
 		case <-signalChan:
-			log.Println("shutdown received")
+			log.Info("shutdown received")
 			return nil
 		case <-ctx.Done():
 			return nil

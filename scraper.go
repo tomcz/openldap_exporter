@@ -3,12 +3,12 @@ package openldap_exporter
 import (
 	"context"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/ldap.v2"
 )
 
@@ -111,9 +111,13 @@ type Scraper struct {
 	User string
 	Pass string
 	Tick time.Duration
+	log  log.FieldLogger
 }
 
 func (s *Scraper) Start(ctx context.Context) error {
+	s.log = log.WithField("component", "scraper")
+	address := fmt.Sprintf("%s://%s", s.Net, s.Addr)
+	s.log.WithField("addr", address).Info("starting monitor loop")
 	ticker := time.NewTicker(s.Tick)
 	for {
 		select {
@@ -136,7 +140,7 @@ func (s *Scraper) runOnce() {
 func (s *Scraper) scrape() bool {
 	l, err := ldap.Dial(s.Net, s.Addr)
 	if err != nil {
-		log.Printf("dial failed: %v\n", err)
+		s.log.WithError(err).Error("dial failed")
 		return false
 	}
 	defer l.Close()
@@ -144,7 +148,7 @@ func (s *Scraper) scrape() bool {
 	if s.User != "" && s.Pass != "" {
 		err = l.Bind(s.User, s.Pass)
 		if err != nil {
-			log.Printf("bind failed: %v\n", err)
+			s.log.WithError(err).Error("bind failed")
 			return false
 		}
 	}
@@ -152,7 +156,7 @@ func (s *Scraper) scrape() bool {
 	ret := true
 	for _, q := range queries {
 		if err := scrapeQuery(l, q); err != nil {
-			log.Printf("query failed: %v\n", err)
+			s.log.WithError(err).Warn("query failed")
 			ret = false
 		}
 	}

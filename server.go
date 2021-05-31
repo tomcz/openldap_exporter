@@ -4,14 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	kitlog "github.com/go-kit/kit/log"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/exporter-toolkit/web"
+	log "github.com/sirupsen/logrus"
 )
 
 var commit string
@@ -23,21 +22,8 @@ func GetVersion() string {
 
 type Server struct {
 	server  *http.Server
+	logger  log.FieldLogger
 	cfgPath string
-}
-
-func (s *Server) Start() error {
-	err := web.ListenAndServe(s.server, s.cfgPath, kitlog.LoggerFunc(logger))
-	if errors.Is(err, http.ErrServerClosed) {
-		return nil
-	}
-	return err
-}
-
-func (s *Server) Stop() {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	s.server.Shutdown(ctx)
-	cancel()
 }
 
 func NewMetricsServer(bindAddr, metricsPath, tlsConfigPath string) *Server {
@@ -46,6 +32,7 @@ func NewMetricsServer(bindAddr, metricsPath, tlsConfigPath string) *Server {
 	mux.HandleFunc("/version", showVersion)
 	return &Server{
 		server:  &http.Server{Addr: bindAddr, Handler: mux},
+		logger:  log.WithField("component", "server"),
 		cfgPath: tlsConfigPath,
 	}
 }
@@ -59,20 +46,53 @@ func showVersion(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, GetVersion())
 }
 
-func logger(kvs ...interface{}) error {
+func (s *Server) Start() error {
+	s.logger.WithField("addr", s.server.Addr).Info("starting http listener")
+	err := web.ListenAndServe(s.server, s.cfgPath, kitlog.LoggerFunc(s.adaptor))
+	if errors.Is(err, http.ErrServerClosed) {
+		return nil
+	}
+	return err
+}
+
+func (s *Server) Stop() {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	s.server.Shutdown(ctx)
+	cancel()
+}
+
+func (s *Server) adaptor(kvs ...interface{}) error {
 	if len(kvs) == 0 {
 		return nil
 	}
 	if len(kvs)%2 != 0 {
 		kvs = append(kvs, nil)
 	}
-	var buf strings.Builder
+	fields := log.Fields{}
 	for i := 0; i < len(kvs); i += 2 {
-		if i > 0 {
-			buf.WriteString(" ")
-		}
-		fmt.Fprintf(&buf, "%v=%v", kvs[i], kvs[i+1])
+		key := fmt.Sprint(kvs[i])
+		fields[key] = kvs[i+1]
 	}
-	log.Println(buf.String())
+	msg := ""
+	if val, ok := fields["msg"]; ok {
+		delete(fields, "msg")
+		msg = fmt.Sprint(val)
+	}
+	level := "info"
+	if val, ok := fields["level"]; ok {
+		delete(fields, "level")
+		level = fmt.Sprint(val)
+	}
+	ll := s.logger.WithFields(fields)
+	switch level {
+	case "error":
+		ll.Error(msg)
+	case "warn":
+		ll.Warn(msg)
+	case "debug":
+		ll.Debug(msg)
+	default:
+		ll.Info(msg)
+	}
 	return nil
 }
