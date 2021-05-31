@@ -156,7 +156,7 @@ func (s *Scraper) scrape() bool {
 	ret := true
 	for _, q := range queries {
 		if err := scrapeQuery(l, q); err != nil {
-			s.log.WithError(err).Warn("query failed")
+			s.log.WithError(err).WithField("filter", q.searchFilter).Warn("query failed")
 			ret = false
 		}
 	}

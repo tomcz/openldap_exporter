@@ -73,12 +73,12 @@ func (s *Server) adaptor(kvs ...interface{}) error {
 		key := fmt.Sprint(kvs[i])
 		fields[key] = kvs[i+1]
 	}
-	msg := ""
+	var msg string
 	if val, ok := fields["msg"]; ok {
 		delete(fields, "msg")
 		msg = fmt.Sprint(val)
 	}
-	level := "info"
+	var level string
 	if val, ok := fields["level"]; ok {
 		delete(fields, "level")
 		level = fmt.Sprint(val)
