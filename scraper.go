@@ -130,11 +130,11 @@ func (s *Scraper) Start(ctx context.Context) error {
 }
 
 func (s *Scraper) runOnce() {
+	result := "fail"
 	if s.scrape() {
-		scrapeCounter.WithLabelValues("ok").Inc()
-	} else {
-		scrapeCounter.WithLabelValues("fail").Inc()
+		result = "ok"
 	}
+	scrapeCounter.WithLabelValues(result).Inc()
 }
 
 func (s *Scraper) scrape() bool {
