@@ -119,6 +119,7 @@ func (s *Scraper) Start(ctx context.Context) error {
 	address := fmt.Sprintf("%s://%s", s.Net, s.Addr)
 	s.log.WithField("addr", address).Info("starting monitor loop")
 	ticker := time.NewTicker(s.Tick)
+	defer ticker.Stop()
 	for {
 		select {
 		case <-ticker.C:
@@ -138,15 +139,15 @@ func (s *Scraper) runOnce() {
 }
 
 func (s *Scraper) scrape() bool {
-	l, err := ldap.Dial(s.Net, s.Addr)
+	conn, err := ldap.Dial(s.Net, s.Addr)
 	if err != nil {
 		s.log.WithError(err).Error("dial failed")
 		return false
 	}
-	defer l.Close()
+	defer conn.Close()
 
 	if s.User != "" && s.Pass != "" {
-		err = l.Bind(s.User, s.Pass)
+		err = conn.Bind(s.User, s.Pass)
 		if err != nil {
 			s.log.WithError(err).Error("bind failed")
 			return false
@@ -155,7 +156,7 @@ func (s *Scraper) scrape() bool {
 
 	ret := true
 	for _, q := range queries {
-		if err := scrapeQuery(l, q); err != nil {
+		if err := scrapeQuery(conn, q); err != nil {
 			s.log.WithError(err).WithField("filter", q.searchFilter).Warn("query failed")
 			ret = false
 		}
@@ -163,12 +164,12 @@ func (s *Scraper) scrape() bool {
 	return ret
 }
 
-func scrapeQuery(l *ldap.Conn, q *query) error {
+func scrapeQuery(conn *ldap.Conn, q *query) error {
 	req := ldap.NewSearchRequest(
 		q.baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
 		q.searchFilter, []string{"dn", q.searchAttr}, nil,
 	)
-	sr, err := l.Search(req)
+	sr, err := conn.Search(req)
 	if err != nil {
 		return err
 	}

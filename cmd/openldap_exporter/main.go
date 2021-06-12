@@ -106,7 +106,11 @@ func optionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (alt
 }
 
 func runMain(c *cli.Context) error {
-	server := exporter.NewMetricsServer(c.String(promAddr), c.String(metrics), c.String(webCfgFile))
+	server := exporter.NewMetricsServer(
+		c.String(promAddr),
+		c.String(metrics),
+		c.String(webCfgFile),
+	)
 
 	scraper := &exporter.Scraper{
 		Net:  c.String(ldapNet),
