@@ -23,6 +23,7 @@ const (
 	ldapPass   = "ldapPass"
 	interval   = "interval"
 	metrics    = "metrPath"
+	jsonLog    = "jsonLog"
 	webCfgFile = "webCfgFile"
 	config     = "config"
 )
@@ -74,6 +75,12 @@ func main() {
 			Usage:   "Prometheus metrics web config `FILE` (optional)",
 			EnvVars: []string{"WEB_CFG_FILE"},
 		}),
+		altsrc.NewBoolFlag(&cli.BoolFlag{
+			Name:    jsonLog,
+			Value:   false,
+			Usage:   "Output logs in JSON format",
+			EnvVars: []string{"JSON_LOG"},
+		}),
 		&cli.StringFlag{
 			Name:  config,
 			Usage: "Optional configuration from a `YAML_FILE`",
@@ -88,7 +95,6 @@ func main() {
 		Flags:           flags,
 		Action:          runMain,
 	}
-	log.Info("service starting")
 	if err := app.Run(os.Args); err != nil {
 		log.WithError(err).Fatal("service failed")
 	}
@@ -106,6 +112,13 @@ func optionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (alt
 }
 
 func runMain(c *cli.Context) error {
+	if c.Bool(jsonLog) {
+		log.SetFormatter(&log.JSONFormatter{})
+	} else {
+		log.SetFormatter(&log.TextFormatter{})
+	}
+	log.Info("service starting")
+
 	server := exporter.NewMetricsServer(
 		c.String(promAddr),
 		c.String(metrics),

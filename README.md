@@ -98,6 +98,7 @@ GLOBAL OPTIONS:
    --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]
    --interval value    Scrape interval (default: 30s) [$INTERVAL]
    --webCfgFile FILE   Prometheus metrics web config FILE (optional) [$WEB_CFG_FILE]
+   --jsonLog           Output logs in JSON format (default: false) [$JSON_LOG]
    --config YAML_FILE  Optional configuration from a YAML_FILE
    --help, -h          show help (default: false)
    --version, -v       print the version (default: false)
