@@ -87,7 +87,7 @@ USAGE:
    openldap_exporter [global options] [arguments...]
 
 VERSION:
-   v2.1.2
+   v2.1.4
 
 GLOBAL OPTIONS:
    --promAddr value    Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
