@@ -167,7 +167,7 @@ func (s *Scraper) scrape() bool {
 func scrapeQuery(conn *ldap.Conn, q *query) error {
 	req := ldap.NewSearchRequest(
 		q.baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		q.searchFilter, []string{"dn", q.searchAttr}, nil,
+		q.searchFilter, []string{"dn", "olmMDBEntries", q.searchAttr}, nil,
 	)
 	sr, err := conn.Search(req)
 	if err != nil {
@@ -175,6 +175,9 @@ func scrapeQuery(conn *ldap.Conn, q *query) error {
 	}
 	for _, entry := range sr.Entries {
 		val := entry.GetAttributeValue(q.searchAttr)
+                if val == "mdb" {
+                        val = entry.GetAttributeValue("olmMDBEntries")
+                }
 		if val == "" {
 			// not every entry will have this attribute
 			continue
