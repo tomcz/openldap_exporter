@@ -2,6 +2,7 @@ package openldap_exporter
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"strconv"
 	"strings"
@@ -110,6 +111,7 @@ type Scraper struct {
 	Addr string
 	User string
 	Pass string
+	TLS  bool
 	Tick time.Duration
 	log  log.FieldLogger
 }
@@ -145,6 +147,15 @@ func (s *Scraper) scrape() bool {
 		return false
 	}
 	defer conn.Close()
+
+	if s.TLS {
+		// Reconnect with TLS
+		err = conn.StartTLS(&tls.Config{InsecureSkipVerify: true})
+		if err != nil {
+			log.Fatal(err)
+			return false
+		}
+	}
 
 	if s.User != "" && s.Pass != "" {
 		err = conn.Bind(s.User, s.Pass)

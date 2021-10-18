@@ -7,10 +7,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/urfave/cli/v2"
+
 	exporter "github.com/tomcz/openldap_exporter"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"golang.org/x/sync/errgroup"
 )
@@ -26,6 +27,7 @@ const (
 	jsonLog    = "jsonLog"
 	webCfgFile = "webCfgFile"
 	config     = "config"
+	ldapTLS    = "ldapTLS"
 )
 
 func main() {
@@ -81,6 +83,12 @@ func main() {
 			Usage:   "Output logs in JSON format",
 			EnvVars: []string{"JSON_LOG"},
 		}),
+		altsrc.NewBoolFlag(&cli.BoolFlag{
+			Name:    ldapTLS,
+			Value:   false,
+			Usage:   "OpenLDAP TLS enable (optional)",
+			EnvVars: []string{"LDAP_TLS"},
+		}),
 		&cli.StringFlag{
 			Name:  config,
 			Usage: "Optional configuration from a `YAML_FILE`",
@@ -131,6 +139,7 @@ func runMain(c *cli.Context) error {
 		User: c.String(ldapUser),
 		Pass: c.String(ldapPass),
 		Tick: c.Duration(interval),
+		TLS:  c.Bool(ldapTLS),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

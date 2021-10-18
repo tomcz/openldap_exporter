@@ -2,11 +2,15 @@
 
 This is a simple service that scrapes metrics from OpenLDAP and exports them via HTTP for Prometheus consumption.
 
-This exporter is based on the ideas in https://github.com/jcollie/openldap_exporter, but it is written in golang to allow for simpler distribution and installation.
+This exporter is based on the ideas in https://github.com/jcollie/openldap_exporter, but it is written in golang to
+allow for simpler distribution and installation.
 
 ## Setting up OpenLDAP for monitoring
 
-_slapd_ supports an optional LDAP monitoring interface you can use to obtain information regarding the current state of your _slapd_ instance. Documentation for this backend can be found in the OpenLDAP [backend guide](http://www.openldap.org/doc/admin24/backends.html#Monitor) and [administration guide](http://www.openldap.org/doc/admin24/monitoringslapd.html).
+_slapd_ supports an optional LDAP monitoring interface you can use to obtain information regarding the current state of
+your _slapd_ instance. Documentation for this backend can be found in the
+OpenLDAP [backend guide](http://www.openldap.org/doc/admin24/backends.html#Monitor)
+and [administration guide](http://www.openldap.org/doc/admin24/monitoringslapd.html).
 
 To enable the backend add the following to the bottom of your `slapd.conf` file:
 
@@ -18,13 +22,17 @@ rootpw YOUR_MONITORING_ROOT_PASSWORD
 
 Technically you don't need `rootdn` or `rootpw`, but having unauthenticated access to _slapd_ feels a little wrong.
 
-You may need to also load the monitoring backend module if your _slapd_ installation needs to load backends as modules by adding this to your `slapd.conf`:
+You may need to also load the monitoring backend module if your _slapd_ installation needs to load backends as modules
+by adding this to your `slapd.conf`:
 
 ```
 moduleload  back_monitor
 ```
 
-Once you've built the exporter (see below), or downloaded the [latest release](https://github.com/tomcz/openldap_exporter/releases), you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
+Once you've built the exporter (see below), or downloaded
+the [latest release](https://github.com/tomcz/openldap_exporter/releases), you can install it on the same server as
+your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the
+exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
 
 ```
 $> curl -s http://localhost:9330/metrics
@@ -70,7 +78,8 @@ openldap_scrape{result="ok"} 6985
 
 ## Configuration
 
-You can configure `openldap_exporter` using multiple configuration sources at the same time. All configuration sources are optional, if none are provided then the default values will be used.
+You can configure `openldap_exporter` using multiple configuration sources at the same time. All configuration sources
+are optional, if none are provided then the default values will be used.
 
 The precedence of these configuration sources is as follows (from the highest to the lowest):
 
@@ -97,6 +106,7 @@ GLOBAL OPTIONS:
    --ldapUser value    OpenLDAP bind username (optional) [$LDAP_USER]
    --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]
    --interval value    Scrape interval (default: 30s) [$INTERVAL]
+   --ldapTLS           OpenLDAP TLS enable (optional) (default: false) [$LDAP_TLS]
    --webCfgFile FILE   Prometheus metrics web config FILE (optional) [$WEB_CFG_FILE]
    --jsonLog           Output logs in JSON format (default: false) [$JSON_LOG]
    --config YAML_FILE  Optional configuration from a YAML_FILE
@@ -121,7 +131,8 @@ ldapPass: "sekret"
 NOTES:
 
 * `ldapNet` allows you to configure `tcp` or `unix` socket connections to your co-located OpenLDAP server.
-* `webCfgFile` can be used to provide authentication and TLS configuration for the [prometheus web exporter](https://github.com/prometheus/exporter-toolkit/tree/master/web).
+* `webCfgFile` can be used to provide authentication and TLS configuration for
+  the [prometheus web exporter](https://github.com/prometheus/exporter-toolkit/tree/master/web).
 
 ## Build
 
