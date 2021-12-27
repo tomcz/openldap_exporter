@@ -150,21 +150,26 @@ func setReplicationValue(entries []*ldap.Entry, q *query) {
 			// not every entry will have this attribute
 			continue
 		}
+		fields := log.Fields{
+			"filter": q.searchFilter,
+			"attr":   q.searchAttr,
+			"value":  val,
+		}
 		valueBuffer := strings.Split(val, "#")
 		gt, err := time.Parse("20060102150405.999999Z", valueBuffer[0])
 		if err != nil {
-			log.WithError(err).WithField("attr", q.searchAttr).Warn("unexpected replication value")
+			log.WithFields(fields).WithError(err).Warn("unexpected gt value")
 			continue
 		}
 		count, err := strconv.ParseFloat(valueBuffer[1], 64)
 		if err != nil {
-			log.WithError(err).WithField("attr", q.searchAttr).Warn("unexpected replication value")
+			log.WithFields(fields).WithError(err).Warn("unexpected count value")
 			continue
 		}
 		sid := valueBuffer[2]
 		mod, err := strconv.ParseFloat(valueBuffer[3], 64)
 		if err != nil {
-			log.WithError(err).WithField("attr", q.searchAttr).Warn("unexpected replication value")
+			log.WithFields(fields).WithError(err).Warn("unexpected mod value")
 			continue
 		}
 		q.metric.WithLabelValues(sid, "gt").Set(float64(gt.Unix()))
