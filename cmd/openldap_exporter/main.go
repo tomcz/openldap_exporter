@@ -65,7 +65,6 @@ func main() {
 			Usage:   "OpenLDAP bind password (optional)",
 			EnvVars: []string{"LDAP_PASS"},
 		}),
-
 		altsrc.NewDurationFlag(&cli.DurationFlag{
 			Name:    interval,
 			Value:   30 * time.Second,
@@ -85,7 +84,7 @@ func main() {
 		}),
 		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
 			Name:  replicationObject,
-			Usage: "Object to watch replication uppon",
+			Usage: "Object to watch replication upon",
 		}),
 		&cli.StringFlag{
 			Name:  config,
