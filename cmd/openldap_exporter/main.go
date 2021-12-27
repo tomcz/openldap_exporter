@@ -16,16 +16,17 @@ import (
 )
 
 const (
-	promAddr   = "promAddr"
-	ldapNet    = "ldapNet"
-	ldapAddr   = "ldapAddr"
-	ldapUser   = "ldapUser"
-	ldapPass   = "ldapPass"
-	interval   = "interval"
-	metrics    = "metrPath"
-	jsonLog    = "jsonLog"
-	webCfgFile = "webCfgFile"
-	config     = "config"
+	promAddr          = "promAddr"
+	ldapNet           = "ldapNet"
+	ldapAddr          = "ldapAddr"
+	ldapUser          = "ldapUser"
+	ldapPass          = "ldapPass"
+	interval          = "interval"
+	metrics           = "metrPath"
+	jsonLog           = "jsonLog"
+	webCfgFile        = "webCfgFile"
+	config            = "config"
+	replicationObject = "replicationObject"
 )
 
 func main() {
@@ -51,7 +52,7 @@ func main() {
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    ldapAddr,
 			Value:   "localhost:389",
-			Usage:   "Address of OpenLDAP server",
+			Usage:   "Address and port of OpenLDAP server",
 			EnvVars: []string{"LDAP_ADDR"},
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
@@ -64,6 +65,7 @@ func main() {
 			Usage:   "OpenLDAP bind password (optional)",
 			EnvVars: []string{"LDAP_PASS"},
 		}),
+
 		altsrc.NewDurationFlag(&cli.DurationFlag{
 			Name:    interval,
 			Value:   30 * time.Second,
@@ -80,6 +82,10 @@ func main() {
 			Value:   false,
 			Usage:   "Output logs in JSON format",
 			EnvVars: []string{"JSON_LOG"},
+		}),
+		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+			Name:  replicationObject,
+			Usage: "Object to watch replication uppon",
 		}),
 		&cli.StringFlag{
 			Name:  config,
@@ -131,6 +137,7 @@ func runMain(c *cli.Context) error {
 		User: c.String(ldapUser),
 		Pass: c.String(ldapPass),
 		Tick: c.Duration(interval),
+		Sync: c.StringSlice(replicationObject),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
