@@ -25,7 +25,7 @@ const (
 	monitorOperation   = "monitorOperation"
 	monitorOpCompleted = "monitorOpCompleted"
 
-	monitorReplicationFilter = "contextcsn"
+	monitorReplicationFilter = "contextCSN"
 	monitorReplication       = "monitorReplication"
 )
 
@@ -34,7 +34,7 @@ type query struct {
 	searchFilter string
 	searchAttr   string
 	metric       *prometheus.GaugeVec
-	setData      func([]*ldap.Entry, *query) error
+	setData      func([]*ldap.Entry, *query)
 }
 
 var (
@@ -84,36 +84,27 @@ var (
 			searchFilter: objectClass(monitoredObject),
 			searchAttr:   monitoredInfo,
 			metric:       monitoredObjectGauge,
-			setData: func(entries []*ldap.Entry, q *query) error {
-				return setValue(entries, q)
-
-			},
+			setData:      setValue,
 		}, {
 			baseDN:       baseDN,
 			searchFilter: objectClass(monitorCounterObject),
 			searchAttr:   monitorCounter,
 			metric:       monitorCounterObjectGauge,
-			setData: func(entries []*ldap.Entry, q *query) error {
-				return setValue(entries, q)
-			},
+			setData:      setValue,
 		},
 		{
 			baseDN:       opsBaseDN,
 			searchFilter: objectClass(monitorOperation),
 			searchAttr:   monitorOpCompleted,
 			metric:       monitorOperationGauge,
-			setData: func(entries []*ldap.Entry, q *query) error {
-				return setValue(entries, q)
-			},
+			setData:      setValue,
 		},
 		{
 			baseDN:       opsBaseDN,
 			searchFilter: objectClass(monitorOperation),
 			searchAttr:   monitorOpCompleted,
 			metric:       monitorOperationGauge,
-			setData: func(entries []*ldap.Entry, q *query) error {
-				return setValue(entries, q)
-			},
+			setData:      setValue,
 		},
 	}
 )
@@ -136,7 +127,7 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func setValue(entries []*ldap.Entry, q *query) error {
+func setValue(entries []*ldap.Entry, q *query) {
 	for _, entry := range entries {
 		val := entry.GetAttributeValue(q.searchAttr)
 		if val == "" {
@@ -150,8 +141,36 @@ func setValue(entries []*ldap.Entry, q *query) error {
 		}
 		q.metric.WithLabelValues(entry.DN).Set(num)
 	}
-	return nil
+}
 
+func setReplicationValue(entries []*ldap.Entry, q *query) {
+	for _, entry := range entries {
+		val := entry.GetAttributeValue(q.searchAttr)
+		if val == "" {
+			// not every entry will have this attribute
+			continue
+		}
+		valueBuffer := strings.Split(val, "#")
+		gt, err := time.Parse("20060102150405.999999Z", valueBuffer[0])
+		if err != nil {
+			log.WithError(err).WithField("attr", q.searchAttr).Warn("unexpected replication value")
+			continue
+		}
+		count, err := strconv.ParseFloat(valueBuffer[1], 64)
+		if err != nil {
+			log.WithError(err).WithField("attr", q.searchAttr).Warn("unexpected replication value")
+			continue
+		}
+		sid := valueBuffer[2]
+		mod, err := strconv.ParseFloat(valueBuffer[3], 64)
+		if err != nil {
+			log.WithError(err).WithField("attr", q.searchAttr).Warn("unexpected replication value")
+			continue
+		}
+		q.metric.WithLabelValues(sid, "gt").Set(float64(gt.Unix()))
+		q.metric.WithLabelValues(sid, "count").Set(count)
+		q.metric.WithLabelValues(sid, "mod").Set(mod)
+	}
 }
 
 type Scraper struct {
@@ -165,47 +184,18 @@ type Scraper struct {
 	Sync     []string
 }
 
-func (s *Scraper) addReplicationQueries() error {
-	if len(s.Sync) != 0 {
-		for _, q := range s.Sync {
-			queries = append(queries,
-				&query{
-					baseDN:       q,
-					searchFilter: objectClass("*"),
-					searchAttr:   "contextCSN",
-					metric:       monitorReplicationGauge,
-					setData: func(entries []*ldap.Entry, q *query) error {
-						for _, entry := range entries {
-							val := entry.GetAttributeValue(q.searchAttr)
-							if val == "" {
-								// not every entry will have this attribute
-								continue
-							}
-							valueBuffer := strings.Split(val, "#")
-							gt, err := time.Parse("20060102150405.999999Z", valueBuffer[0])
-							if err != nil {
-								return err
-							}
-							count, err := strconv.ParseFloat(valueBuffer[1], 64)
-							if err != nil {
-								return err
-							}
-							sid := valueBuffer[2]
-							mod, err := strconv.ParseFloat(valueBuffer[3], 64)
-							if err != nil {
-								return err
-							}
-							q.metric.WithLabelValues(sid, "gt").Set(float64(gt.Unix()))
-							q.metric.WithLabelValues(sid, "count").Set(count)
-							q.metric.WithLabelValues(sid, "mod").Set(mod)
-						}
-						return nil
-					},
-				},
-			)
-		}
+func (s *Scraper) addReplicationQueries() {
+	for _, q := range s.Sync {
+		queries = append(queries,
+			&query{
+				baseDN:       q,
+				searchFilter: objectClass("*"),
+				searchAttr:   monitorReplicationFilter,
+				metric:       monitorReplicationGauge,
+				setData:      setReplicationValue,
+			},
+		)
 	}
-	return nil
 }
 
 func (s *Scraper) Start(ctx context.Context) error {
@@ -268,5 +258,6 @@ func scrapeQuery(conn *ldap.Conn, q *query) error {
 	if err != nil {
 		return err
 	}
-	return q.setData(sr.Entries, q)
+	q.setData(sr.Entries, q)
+	return nil
 }
