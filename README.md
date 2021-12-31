@@ -87,21 +87,22 @@ USAGE:
    openldap_exporter [global options] [arguments...]
 
 VERSION:
-   v2.1.4
+   v2.2.0
 
 GLOBAL OPTIONS:
-   --promAddr value    Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
-   --metrPath value    Path on which to expose Prometheus metrics (default: "/metrics") [$METRICS_PATH]
-   --ldapNet value     Network of OpenLDAP server (default: "tcp") [$LDAP_NET]
-   --ldapAddr value    Address of OpenLDAP server (default: "localhost:389") [$LDAP_ADDR]
-   --ldapUser value    OpenLDAP bind username (optional) [$LDAP_USER]
-   --ldapPass value    OpenLDAP bind password (optional) [$LDAP_PASS]
-   --interval value    Scrape interval (default: 30s) [$INTERVAL]
-   --webCfgFile FILE   Prometheus metrics web config FILE (optional) [$WEB_CFG_FILE]
-   --jsonLog           Output logs in JSON format (default: false) [$JSON_LOG]
-   --config YAML_FILE  Optional configuration from a YAML_FILE
-   --help, -h          show help (default: false)
-   --version, -v       print the version (default: false)
+   --promAddr value           Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
+   --metrPath value           Path on which to expose Prometheus metrics (default: "/metrics") [$METRICS_PATH]
+   --ldapNet value            Network of OpenLDAP server (default: "tcp") [$LDAP_NET]
+   --ldapAddr value           Address and port of OpenLDAP server (default: "localhost:389") [$LDAP_ADDR]
+   --ldapUser value           OpenLDAP bind username (optional) [$LDAP_USER]
+   --ldapPass value           OpenLDAP bind password (optional) [$LDAP_PASS]
+   --interval value           Scrape interval (default: 30s) [$INTERVAL]
+   --webCfgFile FILE          Prometheus metrics web config FILE (optional) [$WEB_CFG_FILE]
+   --jsonLog                  Output logs in JSON format (default: false) [$JSON_LOG]
+   --replicationObject value  Object to watch replication upon
+   --config YAML_FILE         Optional configuration from a YAML_FILE
+   --help, -h                 show help (default: false)
+   --version, -v              print the version (default: false)
 ```
 
 Example:
