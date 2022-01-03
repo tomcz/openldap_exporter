@@ -36,7 +36,13 @@ endif
 
 compile = GOOS=$1 GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o target/openldap_exporter-$1 ./cmd/openldap_exporter
 
-.PHONY: build
-build: target
+.PHONY: build-linux
+build-linux: target
 	$(call compile,linux)
+
+.PHONY: build-darwin
+build-darwin: target
 	$(call compile,darwin)
+
+.PHONY: build
+build: target build-linux build-darwin
