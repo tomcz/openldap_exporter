@@ -38,7 +38,9 @@ endif
 .PHONY: compile
 compile: target
 	go build -ldflags "${LDFLAGS}" -o target/${OUTFILE} ./cmd/openldap_exporter/...
+ifeq (, $(SKIP_TGZ))
 	gzip -c < target/${OUTFILE} > target/${OUTFILE}.gz
+endif
 
 .PHONY: cross-compile
 cross-compile:
@@ -47,3 +49,7 @@ cross-compile:
 	OUTFILE=openldap_exporter-osx-amd64 GOOS=darwin GOARCH=amd64 $(MAKE) compile
 	OUTFILE=openldap_exporter-osx-arm64 GOOS=darwin GOARCH=arm64 $(MAKE) compile
 	(cd target && find . -name '*.gz' -exec sha256sum {} \;) > target/verify.sha256
+
+.PHONY: build-linux
+build-linux:
+	OUTFILE=openldap_exporter-linux SKIP_TGZ=true GOOS=linux GOARCH=amd64 $(MAKE) compile
