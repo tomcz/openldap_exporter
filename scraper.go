@@ -297,14 +297,11 @@ func (config *LDAPConfig) LoadCACert(cafile string) error {
 
 	config.TLSConfig.RootCAs = x509.NewCertPool()
 
-	ok := config.TLSConfig.RootCAs.AppendCertsFromPEM(cert)
-
-	if ok == false {
+	if !config.TLSConfig.RootCAs.AppendCertsFromPEM(cert) {
 		return errors.New("Could not parse CA")
 	}
 
 	return nil
-
 }
 
 func NewLDAPConfig() LDAPConfig {
@@ -340,18 +337,18 @@ func (s *Scraper) addReplicationQueries() {
 func (s *Scraper) Start(ctx context.Context) {
 	s.log = log.WithField("component", "scraper")
 	s.addReplicationQueries()
-	message := ""
+	security := "None"
+	s.log.Info("SECURITY: " + security)
 	if s.LDAPConfig.UseTLS {
-		message = "TLS"
-	} else if !s.LDAPConfig.UseTLS && s.LDAPConfig.UseStartTLS {
-		message = "StartTLS"
+		security = "TLS"
+	} else if s.LDAPConfig.UseStartTLS {
+		security = "StartTLS"
 	}
 	if s.LDAPConfig.TLSConfig.InsecureSkipVerify {
-		message += "/InsecureSkipVerify"
+		security += "/InsecureSkipVerify"
 	}
-	s.log.WithField("security", message).Info("setting connection security")
-	address := fmt.Sprintf("%s://%s", s.LDAPConfig.Scheme, s.LDAPConfig.Addr)
-	s.log.WithField("addr", address).Info("starting monitor loop")
+	address := s.LDAPConfig.Scheme + "://" + s.LDAPConfig.Addr
+	s.log.WithField("addr", address).WithField("security", security).Info("starting monitor loop")
 	ticker := time.NewTicker(s.Tick)
 	defer ticker.Stop()
 	for {
