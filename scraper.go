@@ -203,7 +203,7 @@ func (s *Scraper) addReplicationQueries() {
 	}
 }
 
-func (s *Scraper) Start(ctx context.Context) error {
+func (s *Scraper) Start(ctx context.Context) {
 	s.log = log.WithField("component", "scraper")
 	s.addReplicationQueries()
 	address := fmt.Sprintf("%s://%s", s.Net, s.Addr)
@@ -215,7 +215,7 @@ func (s *Scraper) Start(ctx context.Context) error {
 		case <-ticker.C:
 			s.runOnce()
 		case <-ctx.Done():
-			return nil
+			return
 		}
 	}
 }

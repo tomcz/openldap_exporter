@@ -147,7 +147,8 @@ func runMain(c *cli.Context) error {
 	})
 	group.Go(func() error {
 		defer cancel()
-		return scraper.Start(ctx)
+		scraper.Start(ctx)
+		return nil
 	})
 	group.Go(func() error {
 		defer func() {
