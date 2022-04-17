@@ -8,8 +8,7 @@ LDFLAGS := ${LDFLAGS} -X github.com/tomcz/openldap_exporter.tag=${GIT_TAG}
 precommit: clean format lint build
 
 .PHONY: commit
-commit: clean
-	GO111MODULE=on GOFLAGS='-mod=vendor' $(MAKE) build
+commit: clean build
 
 .PHONY: clean
 clean:
@@ -21,7 +20,7 @@ target:
 .PHONY: format
 format:
 ifeq (, $(shell which goimports))
-	go get golang.org/x/tools/cmd/goimports
+	go install golang.org/x/tools/cmd/goimports@latest
 endif
 	@echo "Running goimports ..."
 	@goimports -w -local github.com/tomcz/openldap_exporter $(shell find . -type f -name '*.go' | grep -v '/vendor/')
@@ -29,7 +28,7 @@ endif
 .PHONY: lint
 lint:
 ifeq (, $(shell which staticcheck))
-	go install honnef.co/go/tools/cmd/staticcheck@2021.1
+	go install honnef.co/go/tools/cmd/staticcheck@latest
 endif
 	@echo "Running staticcheck ..."
 	@staticcheck $(shell go list ./... | grep -v /vendor/)
