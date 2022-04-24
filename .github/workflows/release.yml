@@ -25,4 +25,4 @@ jobs:
           prerelease: false
           files: |
             LICENSE.md
-            target/openldap_exporter*
+            target/*.gz
