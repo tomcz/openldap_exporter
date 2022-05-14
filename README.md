@@ -126,5 +126,5 @@ NOTES:
 
 ## Build
 
-1. Install Go 1.16 from https://golang.org/
+1. Install Go 1.18 from https://golang.org/
 2. Build the binaries: `make build`
