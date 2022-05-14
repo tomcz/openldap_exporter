@@ -26,3 +26,4 @@ jobs:
           files: |
             LICENSE.md
             target/*.gz
+            target/*.sha256
