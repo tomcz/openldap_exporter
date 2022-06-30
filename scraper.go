@@ -78,6 +78,15 @@ var (
 		},
 		[]string{"id", "type"},
 	)
+	canBindGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Subsystem: "openldap",
+			Name:      "can_bind",
+			Help:      "shows if exporter can bind to ldap",
+		},
+		[]string{"ldap_can_bind", "ldap_result_code"},
+	)
+
 	queries = []*query{
 		{
 			baseDN:       baseDN,
@@ -116,6 +125,7 @@ func init() {
 		monitorOperationGauge,
 		monitorReplicationGauge,
 		scrapeCounter,
+		canBindGauge,
 	)
 }
 
@@ -231,6 +241,7 @@ func (s *Scraper) runOnce() {
 func (s *Scraper) scrape() bool {
 	conn, err := ldap.Dial(s.Net, s.Addr)
 	if err != nil {
+		canBindGauge.WithLabelValues("no", strings.ReplaceAll(err.Error(), "\"", "-")).Set(0)
 		s.log.WithError(err).Error("dial failed")
 		return false
 	}
@@ -239,11 +250,13 @@ func (s *Scraper) scrape() bool {
 	if s.User != "" && s.Pass != "" {
 		err = conn.Bind(s.User, s.Pass)
 		if err != nil {
+			canBindGauge.WithLabelValues("no", strings.ReplaceAll(err.Error(), "\"", "-")).Set(0)
 			s.log.WithError(err).Error("bind failed")
 			return false
 		}
 	}
 
+	canBindGauge.WithLabelValues("yes", "LDAP Result Code 0").Set(1)
 	ret := true
 	for _, q := range queries {
 		if err := scrapeQuery(conn, q); err != nil {
