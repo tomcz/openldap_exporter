@@ -255,7 +255,7 @@ func (s *Scraper) scrape() {
 			bindCounter.WithLabelValues("fail").Inc()
 			return
 		}
-		bindCounter.WithLabelValues("fail").Inc()
+		bindCounter.WithLabelValues("ok").Inc()
 	}
 
 	scrapeRes := "ok"
