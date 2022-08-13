@@ -62,6 +62,22 @@ var (
 		},
 		[]string{"dn"},
 	)
+	bindCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Subsystem: "openldap",
+			Name:      "bind",
+			Help:      "successful vs unsuccessful ldap bind attempts",
+		},
+		[]string{"result"},
+	)
+	dialCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Subsystem: "openldap",
+			Name:      "dial",
+			Help:      "successful vs unsuccessful ldap dial attempts",
+		},
+		[]string{"result"},
+	)
 	scrapeCounter = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Subsystem: "openldap",
@@ -116,6 +132,8 @@ func init() {
 		monitorOperationGauge,
 		monitorReplicationGauge,
 		scrapeCounter,
+		bindCounter,
+		dialCounter,
 	)
 }
 
@@ -213,45 +231,41 @@ func (s *Scraper) Start(ctx context.Context) {
 	for {
 		select {
 		case <-ticker.C:
-			s.runOnce()
+			s.scrape()
 		case <-ctx.Done():
 			return
 		}
 	}
 }
 
-func (s *Scraper) runOnce() {
-	result := "fail"
-	if s.scrape() {
-		result = "ok"
-	}
-	scrapeCounter.WithLabelValues(result).Inc()
-}
-
-func (s *Scraper) scrape() bool {
+func (s *Scraper) scrape() {
 	conn, err := ldap.Dial(s.Net, s.Addr)
 	if err != nil {
 		s.log.WithError(err).Error("dial failed")
-		return false
+		dialCounter.WithLabelValues("fail").Inc()
+		return
 	}
+	dialCounter.WithLabelValues("ok").Inc()
 	defer conn.Close()
 
 	if s.User != "" && s.Pass != "" {
 		err = conn.Bind(s.User, s.Pass)
 		if err != nil {
 			s.log.WithError(err).Error("bind failed")
-			return false
+			bindCounter.WithLabelValues("fail").Inc()
+			return
 		}
+		bindCounter.WithLabelValues("fail").Inc()
 	}
 
-	ret := true
+	scrapeRes := "ok"
 	for _, q := range queries {
-		if err := scrapeQuery(conn, q); err != nil {
+		if err = scrapeQuery(conn, q); err != nil {
 			s.log.WithError(err).WithField("filter", q.searchFilter).Warn("query failed")
-			ret = false
+			scrapeRes = "fail"
 		}
 	}
-	return ret
+	scrapeCounter.WithLabelValues(scrapeRes).Inc()
 }
 
 func scrapeQuery(conn *ldap.Conn, q *query) error {
