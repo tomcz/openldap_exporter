@@ -19,8 +19,9 @@ const (
 	monitorCounterObject = "monitorCounterObject"
 	monitorCounter       = "monitorCounter"
 
-	monitoredObject = "monitoredObject"
-	monitoredInfo   = "monitoredInfo"
+	monitoredObject      = "monitoredObject"
+	monitoredInfo        = "monitoredInfo"
+	monitorRuntimeConfig = "monitorRuntimeConfig"
 
 	monitorOperation   = "monitorOperation"
 	monitorOpCompleted = "monitorOpCompleted"
@@ -45,6 +46,14 @@ var (
 			Help:      help(baseDN, objectClass(monitoredObject), monitoredInfo),
 		},
 		[]string{"dn"},
+	)
+	monitoredObjectWithRuntimeGauge = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Subsystem: "openldap",
+			Name:      "monitored_object_with_runtime_config",
+			Help:      help(baseDN, objectClass(monitoredObject), monitoredInfo),
+		},
+		[]string{"dn", "info"},
 	)
 	monitorCounterObjectGauge = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -107,6 +116,12 @@ var (
 			searchAttr:   monitorCounter,
 			metric:       monitorCounterObjectGauge,
 			setData:      setValue,
+		}, {
+			baseDN:       baseDN,
+			searchFilter: objectClass(monitoredObject),
+			searchAttr:   monitorRuntimeConfig,
+			metric:       monitoredObjectWithRuntimeGauge,
+			setData:      setValue,
 		},
 		{
 			baseDN:       opsBaseDN,
@@ -129,6 +144,7 @@ func init() {
 	prometheus.MustRegister(
 		monitoredObjectGauge,
 		monitorCounterObjectGauge,
+		monitoredObjectWithRuntimeGauge,
 		monitorOperationGauge,
 		monitorReplicationGauge,
 		scrapeCounter,
@@ -152,12 +168,23 @@ func setValue(entries []*ldap.Entry, q *query) {
 			// not every entry will have this attribute
 			continue
 		}
-		num, err := strconv.ParseFloat(val, 64)
-		if err != nil {
-			// some of these attributes are not numbers
-			continue
+		if q.metric == monitoredObjectWithRuntimeGauge {
+			mInfo := entry.GetAttributeValue(monitoredInfo)
+			mRuntimeCfg := entry.GetAttributeValue(q.searchAttr)
+
+			num := 0.0
+			if mRuntimeCfg == "TRUE" {
+				num = 1
+			}
+			q.metric.WithLabelValues(entry.DN, mInfo).Set(num)
+		} else {
+			num, err := strconv.ParseFloat(val, 64)
+			if err != nil {
+				// some of these attributes are not numbers
+				continue
+			}
+			q.metric.WithLabelValues(entry.DN).Set(num)
 		}
-		q.metric.WithLabelValues(entry.DN).Set(num)
 	}
 }
 
@@ -269,9 +296,13 @@ func (s *Scraper) scrape() {
 }
 
 func scrapeQuery(conn *ldap.Conn, q *query) error {
+	qAttrs := []string{q.searchAttr}
+	if q.metric == monitoredObjectWithRuntimeGauge {
+		qAttrs = append(qAttrs, monitoredInfo)
+	}
 	req := ldap.NewSearchRequest(
 		q.baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-		q.searchFilter, []string{q.searchAttr}, nil,
+		q.searchFilter, qAttrs, nil,
 	)
 	sr, err := conn.Search(req)
 	if err != nil {
