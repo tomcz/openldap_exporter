@@ -34,7 +34,7 @@ endif
 	@echo "Running staticcheck ..."
 	@staticcheck $(shell go list ./... | grep -v /vendor/)
 
-compile = GOOS=$1 GOARCH=amd64 go build -mod=mod -ldflags "${LDFLAGS}" -o target/openldap_exporter-$1 ./cmd/openldap_exporter
+compile = GOOS=$1 GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o target/openldap_exporter-$1 ./cmd/openldap_exporter
 
 .PHONY: build-linux
 build-linux: target
