@@ -338,7 +338,6 @@ func (s *Scraper) Start(ctx context.Context) {
 	s.log = log.WithField("component", "scraper")
 	s.addReplicationQueries()
 	security := "None"
-	s.log.Info("SECURITY: " + security)
 	if s.LDAPConfig.UseTLS {
 		security = "TLS"
 	} else if s.LDAPConfig.UseStartTLS {

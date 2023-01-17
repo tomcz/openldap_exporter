@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	exporter "github.com/tomcz/openldap_exporter"
+	exporter "github.com/mlorenzo-stratio/openldap_exporter"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
@@ -140,7 +140,7 @@ func runMain(c *cli.Context) error {
 	config := exporter.NewLDAPConfig()
 
 	// Process Address & TLS options
-	err := config.ProcessTLSoptions(c.String(ldapAddr),c.Bool(ldapUseStartTLS),c.Bool(ldapSkipInsecure))
+	err := config.ProcessTLSoptions(c.String(ldapAddr), c.Bool(ldapUseStartTLS), c.Bool(ldapSkipInsecure))
 	if err != nil {
 		log.Println("Error parsing ldap address: ", err.Error())
 		os.Exit(1)
@@ -160,7 +160,6 @@ func runMain(c *cli.Context) error {
 	config.Username = c.String(ldapUser)
 	config.Password = c.String(ldapPass)
 
-
 	server := exporter.NewMetricsServer(
 		c.String(promAddr),
 		c.String(metrics),
@@ -169,8 +168,8 @@ func runMain(c *cli.Context) error {
 
 	scraper := &exporter.Scraper{
 		LDAPConfig: config,
-		Tick: c.Duration(interval),
-		Sync: c.StringSlice(replicationObject),
+		Tick:       c.Duration(interval),
+		Sync:       c.StringSlice(replicationObject),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

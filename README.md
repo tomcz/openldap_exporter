@@ -24,7 +24,7 @@ You may need to also load the monitoring backend module if your _slapd_ installa
 moduleload  back_monitor
 ```
 
-Once you've built the exporter (see below), or downloaded the [latest release](https://github.com/tomcz/openldap_exporter/releases), you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
+Once you've built the exporter (see below), or downloaded the [latest release](https://github.com/mlorenzo-stratio/openldap_exporter/releases), you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
 
 ```
 $> curl -s http://localhost:9330/metrics
@@ -124,14 +124,14 @@ ldapPass: "sekret"
 NOTES:
 
 * `webCfgFile` can be used to provide authentication and TLS configuration for the [prometheus web exporter](https://github.com/prometheus/exporter-toolkit/tree/master/web).
-* `ldapAddr` supports `ldaps://` (default port is `636`), `ldap://` (default port is `389`) and `ldapi://` scheme uri's. (defaults to ldap:// scheme)  
+* `ldapAddr` supports `ldaps://` (default port is `636`), `ldap://` (default port is `389`) and `ldapi://` scheme uri's. (defaults to ldap:// scheme)
 using the LDAPS scheme will open a connection using TLS. Examples:
    - `ldapi:///var/run/ldapi`
    - `ldaps://ldap.host.net:666`
    - `ldap://ldap.host.net`
 * Use `ldapUseStartTLS` to use StartTLS for ldap:// scheme.
 * Use `ldapSkipInsecure` to skip TLS verify.
-* `ldapCACrt` if the ldap server uses a custom CA certificate, add the path to the public CA Cert in PEM format  
+* `ldapCACrt` if the ldap server uses a custom CA certificate, add the path to the public CA Cert in PEM format
 
 ## Build
 
