@@ -323,18 +323,18 @@ func (s *Scraper) addReplicationQueries() {
 func (s *Scraper) Start(ctx context.Context) error {
 	s.log = log.WithField("component", "scraper")
 	s.addReplicationQueries()
-	security := "None"
-	s.log.Info("SECURITY: " + security)
+	message := ""
 	if s.LDAPConfig.UseTLS {
-		security = "TLS"
-	} else if s.LDAPConfig.UseStartTLS {
-		security = "StartTLS"
+		message = "TLS"
+	} else if ! s.LDAPConfig.UseTLS && s.LDAPConfig.UseStartTLS {
+		message = "StartTLS"
 	}
 	if s.LDAPConfig.TLSConfig.InsecureSkipVerify {
-		security += "/InsecureSkipVerify"
+		message += "/InsecureSkipVerify"
 	}
-	address := s.LDAPConfig.Scheme + "://" + s.LDAPConfig.Addr
-	s.log.WithField("addr", address).WithField("security", security).Info("starting monitor loop")
+	s.log.WithField("security", message).Info("setting connection security")
+	address := fmt.Sprintf("%s://%s", s.LDAPConfig.Scheme, s.LDAPConfig.Addr)
+	s.log.WithField("addr", address).Info("starting monitor loop")
 	ticker := time.NewTicker(s.Tick)
 	defer ticker.Stop()
 	for {
