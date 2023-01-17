@@ -1,18 +1,11 @@
 package openldap_exporter
 
 import (
-	"crypto/tls"
-	"crypto/x509"
-	"errors"
 	"context"
 	"fmt"
-	"io/ioutil"
-	"net/url"
-	"os"
 	"strconv"
 	"strings"
 	"time"
-	"regexp"
 
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
@@ -34,10 +27,6 @@ const (
 
 	monitorReplicationFilter = "contextCSN"
 	monitorReplication       = "monitorReplication"
-
-	SchemeLDAPS = "ldaps"
-	SchemeLDAP  = "ldap"
-	SchemeLDAPI = "ldapi"
 )
 
 type query struct {
@@ -189,121 +178,15 @@ func setReplicationValue(entries []*ldap.Entry, q *query) {
 	}
 }
 
-type LDAPConfig struct {
-	UseTLS        bool
-	UseStartTLS   bool
-	Scheme      	string
-	Addr        	string
-	Host        	string
-	Port        	string
-	Protocol    	string
-	Username    	string
-	Password    	string
-	TLSConfig   	tls.Config
-}
-
 type Scraper struct {
-	LDAPConfig    LDAPConfig
-	Tick     			time.Duration
-	log      			log.FieldLogger
-	Sync     			[]string
-}
-
-
-func (config *LDAPConfig) ProcessTLSoptions(addr string, useStartTLS bool, skipInsecure bool) error {
-
-	var u *url.URL
-
-	u, err := url.Parse(addr)
-	if (err != nil) {
-		// Well, so far the easy way....
-		u = &url.URL{}
-	}
-
-	if u.Host == "" {
-		if strings.HasPrefix(addr, SchemeLDAPI) {
-			u.Scheme = SchemeLDAPI
-			u.Host, _ = url.QueryUnescape(strings.Replace(addr, SchemeLDAPI+"://", "", 1))
-		} else if strings.HasPrefix(addr, SchemeLDAPS) {
-			u.Scheme = SchemeLDAPS
-			u.Host = strings.Replace(addr, SchemeLDAPS+"://", "", 1)
-		} else {
-			u.Scheme = SchemeLDAP
-			u.Host = strings.Replace(addr, SchemeLDAP+"://", "", 1)
-		}
-	}
-
-	config.Addr = u.Host
-	config.Scheme = u.Scheme
-	config.Host = u.Hostname()
-
-	r, _ := regexp.Compile(":[0-9]+")
-	if u.Scheme == SchemeLDAPS {
-		config.UseTLS = true
-		if ! r.MatchString(config.Addr){
-			config.Port = "636"
-			config.Addr += ":" + config.Port
-		}
-	} else if u.Scheme == SchemeLDAP {
-		config.UseTLS = false
-		if ! r.MatchString(config.Addr){
-			config.Port = "389"
-			config.Addr += ":" + config.Port
-		}
-	} else if u.Scheme == SchemeLDAPI {
-		config.Protocol = "unix"
-	} else {
-		return errors.New(u.Scheme + " is not a scheme i understand, refusing to continue")
-	}
-
-  config.TLSConfig.InsecureSkipVerify = skipInsecure
-	config.TLSConfig.ServerName = config.Host
-	if ! config.UseTLS {
-		// useStartTLS only relevant if not using TLS
-		config.UseStartTLS = useStartTLS
-	}
-
-	return nil
-}
-
-func (config *LDAPConfig) LoadCACert(cafile string) error {
-
-	if _, err := os.Stat(cafile); os.IsNotExist(err) {
-		return errors.New("CA Certificate file does not exists")
-	}
-
-	cert, err := ioutil.ReadFile(cafile)
-
-	if err != nil {
-		return errors.New("CA Certificate file is not readable")
-	}
-
-	config.TLSConfig.RootCAs = x509.NewCertPool()
-
-	ok := config.TLSConfig.RootCAs.AppendCertsFromPEM(cert)
-
-	if ok == false {
-		return errors.New("Could not parse CA")
-	}
-
-	return nil
-
-}
-
-func NewLDAPConfig() LDAPConfig {
-
-	conf := LDAPConfig{}
-
-	conf.Scheme = SchemeLDAP
-	conf.Host = "localhost"
-	conf.Port = "389"
-	conf.Addr = conf.Host + ":" + conf.Port
-	conf.Protocol = "tcp"
-	conf.UseTLS = false
-	conf.UseStartTLS = false
-	conf.TLSConfig = tls.Config{}
-
-	return conf
+	Net      string
+	Addr     string
+	User     string
+	Pass     string
+	Tick     time.Duration
+	LdapSync []string
+	log      log.FieldLogger
+	Sync     []string
 }
 
 func (s *Scraper) addReplicationQueries() {
@@ -323,17 +206,7 @@ func (s *Scraper) addReplicationQueries() {
 func (s *Scraper) Start(ctx context.Context) error {
 	s.log = log.WithField("component", "scraper")
 	s.addReplicationQueries()
-	message := ""
-	if s.LDAPConfig.UseTLS {
-		message = "TLS"
-	} else if ! s.LDAPConfig.UseTLS && s.LDAPConfig.UseStartTLS {
-		message = "StartTLS"
-	}
-	if s.LDAPConfig.TLSConfig.InsecureSkipVerify {
-		message += "/InsecureSkipVerify"
-	}
-	s.log.WithField("security", message).Info("setting connection security")
-	address := fmt.Sprintf("%s://%s", s.LDAPConfig.Scheme, s.LDAPConfig.Addr)
+	address := fmt.Sprintf("%s://%s", s.Net, s.Addr)
 	s.log.WithField("addr", address).Info("starting monitor loop")
 	ticker := time.NewTicker(s.Tick)
 	defer ticker.Stop()
@@ -356,36 +229,15 @@ func (s *Scraper) runOnce() {
 }
 
 func (s *Scraper) scrape() bool {
-	var conn *ldap.Conn
-	var err error
-
-	if s.LDAPConfig.UseTLS {
-		conn, err = ldap.DialTLS(s.LDAPConfig.Protocol, s.LDAPConfig.Addr, &s.LDAPConfig.TLSConfig)
-	} else {
-		conn, err = ldap.Dial(s.LDAPConfig.Protocol, s.LDAPConfig.Addr)
-		if err != nil {
-			s.log.WithError(err).Error("dial failed")
-			return false
-		}
-
-		if s.LDAPConfig.UseStartTLS {
-			err = conn.StartTLS(&s.LDAPConfig.TLSConfig)
-			if err != nil {
-				s.log.WithError(err).Error("StartTLS failed")
-				return false
-			}
-		}
-	}
-
+	conn, err := ldap.Dial(s.Net, s.Addr)
 	if err != nil {
 		s.log.WithError(err).Error("dial failed")
 		return false
 	}
+	defer conn.Close()
 
-  defer conn.Close()
-
-	if s.LDAPConfig.Username != "" && s.LDAPConfig.Password != "" {
-		err = conn.Bind(s.LDAPConfig.Username, s.LDAPConfig.Password)
+	if s.User != "" && s.Pass != "" {
+		err = conn.Bind(s.User, s.Pass)
 		if err != nil {
 			s.log.WithError(err).Error("bind failed")
 			return false
