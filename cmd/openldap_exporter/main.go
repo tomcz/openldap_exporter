@@ -16,17 +16,18 @@ import (
 )
 
 const (
-	promAddr          = "promAddr"
-	ldapNet           = "ldapNet"
-	ldapAddr          = "ldapAddr"
-	ldapUser          = "ldapUser"
-	ldapPass          = "ldapPass"
-	interval          = "interval"
-	metrics           = "metrPath"
-	jsonLog           = "jsonLog"
-	webCfgFile        = "webCfgFile"
-	config            = "config"
-	replicationObject = "replicationObject"
+	promAddr                = "promAddr"
+	ldapNet                 = "ldapNet"
+	ldapAddr                = "ldapAddr"
+	ldapUser                = "ldapUser"
+	ldapPass                = "ldapPass"
+	interval                = "interval"
+	metrics                 = "metrPath"
+	jsonLog                 = "jsonLog"
+	webCfgFile              = "webCfgFile"
+	config                  = "config"
+	replicationObject       = "replicationObject"
+	replicationSearchFilter = "replicationSearchFilter"
 )
 
 func main() {
@@ -86,6 +87,10 @@ func main() {
 			Name:  replicationObject,
 			Usage: "Object to watch replication upon",
 		}),
+		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+			Name:  replicationSearchFilter,
+			Usage: "Search Filter to watch replication upon, takes precedence over replicationObject",
+		}),
 		&cli.StringFlag{
 			Name:  config,
 			Usage: "Optional configuration from a `YAML_FILE`",
@@ -131,12 +136,13 @@ func runMain(c *cli.Context) error {
 	)
 
 	scraper := &exporter.Scraper{
-		Net:  c.String(ldapNet),
-		Addr: c.String(ldapAddr),
-		User: c.String(ldapUser),
-		Pass: c.String(ldapPass),
-		Tick: c.Duration(interval),
-		Sync: c.StringSlice(replicationObject),
+		Net:              c.String(ldapNet),
+		Addr:             c.String(ldapAddr),
+		User:             c.String(ldapUser),
+		Pass:             c.String(ldapPass),
+		Tick:             c.Duration(interval),
+		Sync:             c.StringSlice(replicationObject),
+		SyncSearchFilter: c.String(replicationSearchFilter),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

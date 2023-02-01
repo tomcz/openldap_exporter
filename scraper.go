@@ -145,6 +145,14 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
+func searchFilter(s *Scraper, name string) string {
+	if len(s.SyncSearchFilter) > 0 {
+		return fmt.Sprintf(s.SyncSearchFilter)
+	} else {
+		return objectClass(name)
+	}
+}
+
 func setValue(entries []*ldap.Entry, q *query) {
 	for _, entry := range entries {
 		val := entry.GetAttributeValue(q.searchAttr)
@@ -197,14 +205,15 @@ func setReplicationValue(entries []*ldap.Entry, q *query) {
 }
 
 type Scraper struct {
-	Net      string
-	Addr     string
-	User     string
-	Pass     string
-	Tick     time.Duration
-	LdapSync []string
-	log      log.FieldLogger
-	Sync     []string
+	Net              string
+	Addr             string
+	User             string
+	Pass             string
+	Tick             time.Duration
+	LdapSync         []string
+	log              log.FieldLogger
+	Sync             []string
+	SyncSearchFilter string
 }
 
 func (s *Scraper) addReplicationQueries() {
@@ -212,7 +221,7 @@ func (s *Scraper) addReplicationQueries() {
 		queries = append(queries,
 			&query{
 				baseDN:       q,
-				searchFilter: objectClass("*"),
+				searchFilter: searchFilter(s, "*"),
 				searchAttr:   monitorReplicationFilter,
 				metric:       monitorReplicationGauge,
 				setData:      setReplicationValue,
