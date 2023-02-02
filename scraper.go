@@ -145,9 +145,9 @@ func objectClass(name string) string {
 	return fmt.Sprintf("(objectClass=%v)", name)
 }
 
-func searchFilter(s *Scraper, name string) string {
+func syncSearchFilter(s *Scraper, name string) string {
 	if len(s.SyncSearchFilter) > 0 {
-		return fmt.Sprintf(s.SyncSearchFilter)
+		return s.SyncSearchFilter
 	} else {
 		return objectClass(name)
 	}
@@ -221,7 +221,7 @@ func (s *Scraper) addReplicationQueries() {
 		queries = append(queries,
 			&query{
 				baseDN:       q,
-				searchFilter: searchFilter(s, "*"),
+				searchFilter: syncSearchFilter(s, "*"),
 				searchAttr:   monitorReplicationFilter,
 				metric:       monitorReplicationGauge,
 				setData:      setReplicationValue,

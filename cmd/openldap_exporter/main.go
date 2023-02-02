@@ -87,7 +87,7 @@ func main() {
 			Name:  replicationObject,
 			Usage: "Object to watch replication upon",
 		}),
-		altsrc.NewStringSliceFlag(&cli.StringSliceFlag{
+		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:  replicationSearchFilter,
 			Usage: "Search Filter to watch replication upon, takes precedence over replicationObject",
 		}),
