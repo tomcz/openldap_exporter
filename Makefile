@@ -37,7 +37,7 @@ endif
 
 .PHONY: compile
 compile: target
-	go build -ldflags "${LDFLAGS}" -o target/${OUTFILE} ./cmd/openldap_exporter/...
+	go build -buildvcs=false -ldflags "${LDFLAGS}" -o target/${OUTFILE} ./cmd/openldap_exporter/...
 	gzip -c < target/${OUTFILE} > target/${OUTFILE}.gz
 
 .PHONY: cross-compile

@@ -2,6 +2,7 @@ package openldap_exporter
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"strconv"
 	"strings"
@@ -197,14 +198,16 @@ func setReplicationValue(entries []*ldap.Entry, q *query) {
 }
 
 type Scraper struct {
-	Net      string
-	Addr     string
-	User     string
-	Pass     string
-	Tick     time.Duration
-	LdapSync []string
-	log      log.FieldLogger
-	Sync     []string
+	Net                string
+	Addr               string
+	User               string
+	Pass               string
+	Tick               time.Duration
+	LdapSync           []string
+	log                log.FieldLogger
+	Sync               []string
+	InsecureSkipVerify bool
+	TLS                bool
 }
 
 func (s *Scraper) addReplicationQueries() {
@@ -239,7 +242,22 @@ func (s *Scraper) Start(ctx context.Context) {
 }
 
 func (s *Scraper) scrape() {
-	conn, err := ldap.Dial(s.Net, s.Addr)
+	var conn *ldap.Conn
+	var err error
+
+	tlsConfig := &tls.Config{
+		ServerName: strings.Split(s.Addr, ":")[0],
+	}
+	switch s.TLS {
+	case true:
+		if s.InsecureSkipVerify {
+			tlsConfig.InsecureSkipVerify = true
+		}
+		conn, err = ldap.DialTLS(s.Net, s.Addr, tlsConfig)
+	case false:
+		conn, err = ldap.Dial(s.Net, s.Addr)
+	}
+
 	if err != nil {
 		s.log.WithError(err).Error("dial failed")
 		dialCounter.WithLabelValues("fail").Inc()
