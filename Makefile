@@ -21,19 +21,12 @@ target:
 
 .PHONY: format
 format:
-ifeq (, $(shell which goimports))
-	go install golang.org/x/tools/cmd/goimports@latest
-endif
-	@echo "Running goimports ..."
+	@echo 'goimports ./...'
 	@goimports -w -local github.com/tomcz/openldap_exporter $(shell find . -type f -name '*.go' | grep -v '/vendor/')
 
 .PHONY: lint
 lint:
-ifeq (, $(shell which staticcheck))
-	go install honnef.co/go/tools/cmd/staticcheck@latest
-endif
-	@echo "Running staticcheck ..."
-	@staticcheck $(shell go list ./... | grep -v /vendor/)
+	golangci-lint run
 
 .PHONY: compile
 compile: target
@@ -47,3 +40,8 @@ cross-compile:
 	OUTFILE=openldap_exporter-osx-amd64 GOOS=darwin GOARCH=amd64 $(MAKE) compile
 	OUTFILE=openldap_exporter-osx-arm64 GOOS=darwin GOARCH=arm64 $(MAKE) compile
 	(cd target && find . -name '*.gz' -exec sha256sum {} \;) > target/verify.sha256
+
+.PHONY: vendor
+vendor:
+	go mod tidy -compat=1.20
+	go mod vendor

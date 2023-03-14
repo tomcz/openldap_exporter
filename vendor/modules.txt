@@ -64,6 +64,9 @@ github.com/russross/blackfriday/v2
 # github.com/sirupsen/logrus v1.8.1
 ## explicit; go 1.13
 github.com/sirupsen/logrus
+# github.com/tomcz/gotools v0.4.2
+## explicit; go 1.19
+github.com/tomcz/gotools/quiet
 # github.com/urfave/cli/v2 v2.4.0
 ## explicit; go 1.11
 github.com/urfave/cli/v2

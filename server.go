@@ -1,7 +1,6 @@
 package openldap_exporter
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/exporter-toolkit/web"
 	log "github.com/sirupsen/logrus"
+	"github.com/tomcz/gotools/quiet"
 )
 
 var commit string
@@ -56,9 +56,7 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Stop() {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	s.server.Shutdown(ctx)
-	cancel()
+	quiet.CloseWithTimeout(s.server.Shutdown, 100*time.Millisecond)
 }
 
 func (s *Server) adaptor(kvs ...interface{}) error {
