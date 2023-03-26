@@ -208,8 +208,8 @@ github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXf
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
 github.com/stretchr/testify v1.4.0 h1:2E4SXV/wtOkTonXsotYi4li6zVWxYlZuYNCXe9XRJyk=
 github.com/stretchr/testify v1.4.0/go.mod h1:j7eGeouHqKxXV5pUuKE4zz7dFj8WfuZ+81PSLYec5m4=
-github.com/tomcz/gotools v0.4.2 h1:bforF32o12uGyJH1sJPMAkI/XeGaGylwk0XC4wKgOf8=
-github.com/tomcz/gotools v0.4.2/go.mod h1:SYLitf1gefAO8soXL4ueN+z5IrkEv18Nb0W2hoOi/+s=
+github.com/tomcz/gotools v0.4.3 h1:HDp2xf+V4QLBDUTITyRg3iT6xdNctOFyuD8UGtNYRxA=
+github.com/tomcz/gotools v0.4.3/go.mod h1:XpogqLWZanpKfo+a2YEvtdKy1zmYVrjpMYRAzHVebD4=
 github.com/urfave/cli/v2 v2.4.0 h1:m2pxjjDFgDxSPtO8WSdbndj17Wu2y8vOT86wE/tjr+I=
 github.com/urfave/cli/v2 v2.4.0/go.mod h1:NX9W0zmTvedE5oDoOMs2RTC8RvdK98NTYZE5LbaEYPg=
 github.com/yuin/goldmark v1.1.25/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=

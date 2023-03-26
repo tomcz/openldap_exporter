@@ -10,9 +10,9 @@ import (
 	exporter "github.com/tomcz/openldap_exporter"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/tomcz/gotools/errgroup"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
-	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -140,7 +140,7 @@ func runMain(c *cli.Context) error {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	var group errgroup.Group
+	group := errgroup.New()
 	group.Go(func() error {
 		defer cancel()
 		return server.Start()

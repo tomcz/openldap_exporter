@@ -7,9 +7,8 @@ require (
 	github.com/prometheus/client_golang v1.12.1
 	github.com/prometheus/exporter-toolkit v0.7.3
 	github.com/sirupsen/logrus v1.8.1
-	github.com/tomcz/gotools v0.4.2
+	github.com/tomcz/gotools v0.4.3
 	github.com/urfave/cli/v2 v2.4.0
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gopkg.in/ldap.v2 v2.5.1
 )
 
@@ -31,6 +30,7 @@ require (
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c // indirect
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.6 // indirect
