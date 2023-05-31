@@ -8,6 +8,6 @@ WORKDIR /go/src/github.com/tomcz/openldap_exporter
 ENV GOPATH=/go
 RUN make compile
 
-FROM library/alpine:3.15.0
+FROM library/debian:bullseye
 COPY --from=build-env /go/src/github.com/tomcz/openldap_exporter/target/openldap_exporter /usr/bin/openldap_exporter
 ENTRYPOINT ["openldap_exporter"]
