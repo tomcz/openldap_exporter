@@ -197,14 +197,17 @@ func setReplicationValue(entries []*ldap.Entry, q *query) {
 }
 
 type Scraper struct {
-	Net      string
-	Addr     string
-	User     string
-	Pass     string
-	Tick     time.Duration
-	LdapSync []string
-	log      log.FieldLogger
-	Sync     []string
+	Net                string
+	TLS                string
+	InsecureSkipVerify bool
+	TLSCA              string
+	Addr               string
+	User               string
+	Pass               string
+	Tick               time.Duration
+	LdapSync           []string
+	log                log.FieldLogger
+	Sync               []string
 }
 
 func (s *Scraper) addReplicationQueries() {
@@ -239,7 +242,49 @@ func (s *Scraper) Start(ctx context.Context) {
 }
 
 func (s *Scraper) scrape() {
-	conn, err := ldap.Dial(s.Net, s.Addr)
+	var err error
+	var conn *ldap.Conn
+	if s.TLS != "" {
+		// build TLS connection
+		clientTLSConfig := ClientConfig{
+			TLSCA:              s.TLSCA,
+			InsecureSkipVerify: s.InsecureSkipVerify,
+		}
+		tlsConfig, err := clientTLSConfig.TLSConfig()
+		if err != nil {
+			s.log.WithError(err).Error("Creating TLS Config failed")
+			return
+		}
+
+		switch s.TLS {
+		case "ldaps":
+			conn, err = ldap.DialTLS(s.Net, s.Addr, tlsConfig)
+			if err != nil {
+				s.log.WithError(err).Error("TLS Dial failed")
+				dialCounter.WithLabelValues("fail").Inc()
+				return
+			}
+		case "starttls":
+			conn, err = ldap.Dial(s.Net, s.Addr)
+			if err != nil {
+				s.log.WithError(err).Error("Dial for Starttls failed")
+				dialCounter.WithLabelValues("fail").Inc()
+				return
+			}
+			err = conn.StartTLS(tlsConfig)
+			if err != nil {
+				s.log.WithError(err).Error("Starttls Dial failed")
+				dialCounter.WithLabelValues("fail").Inc()
+				return
+			}
+		default:
+			s.log.WithError(err).Error("Invalid settings for ssl: %s", s.TLS)
+			return
+		}
+	} else {
+		conn, err = ldap.Dial(s.Net, s.Addr)
+	}
+
 	if err != nil {
 		s.log.WithError(err).Error("dial failed")
 		dialCounter.WithLabelValues("fail").Inc()

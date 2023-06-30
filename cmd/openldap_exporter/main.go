@@ -7,7 +7,7 @@ import (
 	"syscall"
 	"time"
 
-	exporter "github.com/tomcz/openldap_exporter"
+	exporter "github.com/4data-ch/openldap_exporter"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/tomcz/gotools/errgroup"
@@ -16,17 +16,20 @@ import (
 )
 
 const (
-	promAddr          = "promAddr"
-	ldapNet           = "ldapNet"
-	ldapAddr          = "ldapAddr"
-	ldapUser          = "ldapUser"
-	ldapPass          = "ldapPass"
-	interval          = "interval"
-	metrics           = "metrPath"
-	jsonLog           = "jsonLog"
-	webCfgFile        = "webCfgFile"
-	config            = "config"
-	replicationObject = "replicationObject"
+	promAddr               = "promAddr"
+	ldapNet                = "ldapNet"
+	ldapTLS                = "ldapTLS"
+	ldapInsecureSkipVerify = "ldapInsecureSkipVerify"
+	ldapTLSCA              = "ldapTLSCA"
+	ldapAddr               = "ldapAddr"
+	ldapUser               = "ldapUser"
+	ldapPass               = "ldapPass"
+	interval               = "interval"
+	metrics                = "metrPath"
+	jsonLog                = "jsonLog"
+	webCfgFile             = "webCfgFile"
+	config                 = "config"
+	replicationObject      = "replicationObject"
 )
 
 func main() {
@@ -48,6 +51,24 @@ func main() {
 			Value:   "tcp",
 			Usage:   "Network of OpenLDAP server",
 			EnvVars: []string{"LDAP_NET"},
+		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:    ldapTLS,
+			Value:   "",
+			Usage:   "Use ldaps, starttls, or no encryption to connect to OpenLDAP server",
+			EnvVars: []string{"LDAP_TLS"},
+		}),
+		altsrc.NewBoolFlag(&cli.BoolFlag{
+			Name:    ldapInsecureSkipVerify,
+			Value:   false,
+			Usage:   "Insecure TLS connection to OpenLDAP server (optional)",
+			EnvVars: []string{"LDAP_INSECURE_SKIP_VERIFY"},
+		}),
+		altsrc.NewStringFlag(&cli.StringFlag{
+			Name:    ldapTLSCA,
+			Value:   "",
+			Usage:   "Path to PEM-encoded Root certificate to use to verify server certificate (optional)",
+			EnvVars: []string{"LDAP_TLSCA"},
 		}),
 		altsrc.NewStringFlag(&cli.StringFlag{
 			Name:    ldapAddr,
@@ -131,12 +152,15 @@ func runMain(c *cli.Context) error {
 	)
 
 	scraper := &exporter.Scraper{
-		Net:  c.String(ldapNet),
-		Addr: c.String(ldapAddr),
-		User: c.String(ldapUser),
-		Pass: c.String(ldapPass),
-		Tick: c.Duration(interval),
-		Sync: c.StringSlice(replicationObject),
+		Net:                c.String(ldapNet),
+		TLS:                c.String(ldapTLS),
+		InsecureSkipVerify: c.Bool(ldapInsecureSkipVerify),
+		TLSCA:              c.String(ldapTLSCA),
+		Addr:               c.String(ldapAddr),
+		User:               c.String(ldapUser),
+		Pass:               c.String(ldapPass),
+		Tick:               c.Duration(interval),
+		Sync:               c.StringSlice(replicationObject),
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -2,7 +2,7 @@
 
 This is a simple service that scrapes metrics from OpenLDAP and exports them via HTTP for Prometheus consumption.
 
-This exporter is based on the ideas in https://github.com/jcollie/openldap_exporter, but it is written in golang to allow for simpler distribution and installation.
+This exporter is based on https://github.com/tomcz/openldap_exporter, with addional support for TLS. The fork has been created to respect the original authors decision not to include TLS support.
 
 ## Setting up OpenLDAP for monitoring
 
@@ -24,7 +24,7 @@ You may need to also load the monitoring backend module if your _slapd_ installa
 moduleload  back_monitor
 ```
 
-Once you've built the exporter (see below), or downloaded the [latest release](https://github.com/tomcz/openldap_exporter/releases), you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
+Once you've built the exporter (see below), or downloaded the [latest release](https://github.com/4data.ch/openldap_exporter/releases), you can install it on the same server as your _slapd_ instance, and run it as a service. You can then configure Prometheus to pull metrics from the exporter's `/metrics` endpoint on port 9330, and check to see that it is working via curl:
 
 ```
 $> curl -s http://localhost:9330/metrics
@@ -87,19 +87,22 @@ USAGE:
    openldap_exporter [global options] [arguments...]
 
 VERSION:
-   v2.2.0
+   v3.0.0 (24ad554)
 
 GLOBAL OPTIONS:
    --promAddr value           Bind address for Prometheus HTTP metrics server (default: ":9330") [$PROM_ADDR]
    --metrPath value           Path on which to expose Prometheus metrics (default: "/metrics") [$METRICS_PATH]
    --ldapNet value            Network of OpenLDAP server (default: "tcp") [$LDAP_NET]
+   --ldapTLS value            Use ldaps, starttls, or no encryption to connect to OpenLDAP server [$LDAP_TLS]
+   --ldapInsecureSkipVerify   Insecure TLS connection to OpenLDAP server (optional) (default: false) [$LDAP_INSECURE_SKIP_VERIFY]
+   --ldapTLSCA value          Path to PEM-encoded Root certificate to use to verify server certificate (optional) [$LDAP_TLSCA]
    --ldapAddr value           Address and port of OpenLDAP server (default: "localhost:389") [$LDAP_ADDR]
    --ldapUser value           OpenLDAP bind username (optional) [$LDAP_USER]
    --ldapPass value           OpenLDAP bind password (optional) [$LDAP_PASS]
    --interval value           Scrape interval (default: 30s) [$INTERVAL]
    --webCfgFile FILE          Prometheus metrics web config FILE (optional) [$WEB_CFG_FILE]
    --jsonLog                  Output logs in JSON format (default: false) [$JSON_LOG]
-   --replicationObject value  Object to watch replication upon
+   --replicationObject value  Object to watch replication upon  (accepts multiple inputs)
    --config YAML_FILE         Optional configuration from a YAML_FILE
    --help, -h                 show help (default: false)
    --version, -v              print the version (default: false)

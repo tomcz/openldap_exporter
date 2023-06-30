@@ -1,8 +1,8 @@
-GITCOMMIT := $(shell git rev-parse --short HEAD 2>/dev/null)
+GITC_OMMIT := $(shell git rev-parse --short HEAD 2>/dev/null)
 GIT_TAG := $(shell git describe --tags 2>/dev/null)
 
-LDFLAGS := -s -w -X github.com/tomcz/openldap_exporter.commit=${GITCOMMIT}
-LDFLAGS := ${LDFLAGS} -X github.com/tomcz/openldap_exporter.tag=${GIT_TAG}
+LDFLAGS := -s -w -X github.com/4data-ch/openldap_exporter.commit=${GIT_COMMIT}
+LDFLAGS := ${LDFLAGS} -X github.com/4data-ch/openldap_exporter.tag=${GIT_TAG}
 OUTFILE ?= openldap_exporter
 
 .PHONY: precommit
@@ -22,7 +22,7 @@ target:
 .PHONY: format
 format:
 	@echo 'goimports ./...'
-	@goimports -w -local github.com/tomcz/openldap_exporter $(shell find . -type f -name '*.go' | grep -v '/vendor/')
+	@goimports -w -local github.com/4data-ch/openldap_exporter $(shell find . -type f -name '*.go' | grep -v '/vendor/')
 
 .PHONY: lint
 lint:
