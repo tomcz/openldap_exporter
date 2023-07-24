@@ -8,6 +8,9 @@ OUTFILE ?= openldap_exporter
 .PHONY: precommit
 precommit: clean format lint compile
 
+.PHONY: build
+build: clean compile
+
 .PHONY: commit
 commit: clean cross-compile
 	ls -lha target/
