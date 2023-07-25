@@ -99,11 +99,11 @@ func main() {
 		HideHelpCommand: true,
 		Flags:           flags,
 		Action:          runMain,
+		After:           afterMain,
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.WithError(err).Fatal("service failed")
 	}
-	log.Info("service stopped")
 }
 
 func optionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (altsrc.InputSourceContext, error) {
@@ -114,6 +114,11 @@ func optionalYamlSourceFunc(flagFileName string) func(context *cli.Context) (alt
 		}
 		return &altsrc.MapInputSource{}, nil
 	}
+}
+
+func afterMain(c *cli.Context) error {
+	log.Info("service stopped")
+	return nil
 }
 
 func runMain(c *cli.Context) error {
