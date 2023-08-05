@@ -1,3 +1,5 @@
+⚠️ This repository is now archived. Thank you all for your excellent contributions. May it continue to live in all your wonderful forks.
+
 # OpenLDAP Prometheus Exporter
 
 This is a simple service that scrapes metrics from OpenLDAP and exports them via HTTP for Prometheus consumption.
