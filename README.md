@@ -1,4 +1,7 @@
-⚠️ This repository is now archived. Thank you all for your excellent contributions. May it continue to live in all your wonderful forks.
+> [!IMPORTANT]
+> This repository is now archived.  
+> Thank you all for your excellent contributions.  
+> May it continue to live in all your wonderful forks.
 
 # OpenLDAP Prometheus Exporter
 
@@ -128,5 +131,5 @@ NOTES:
 
 ## Build
 
-1. Install Go 1.20 from https://golang.org/
+1. Install Go 1.22 from https://golang.org/
 2. Build the binaries: `make build`

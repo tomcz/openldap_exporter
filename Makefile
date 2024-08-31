@@ -24,8 +24,7 @@ target:
 
 .PHONY: format
 format:
-	@echo 'goimports ./...'
-	@goimports -w -local github.com/tomcz/openldap_exporter $(shell find . -type f -name '*.go' | grep -v '/vendor/')
+	goimports -w main.go
 
 .PHONY: lint
 lint:
@@ -33,7 +32,7 @@ lint:
 
 .PHONY: compile
 compile: target
-	go build -ldflags "${LDFLAGS}" -o target/${OUTFILE} ./cmd/openldap_exporter/...
+	go build -ldflags "${LDFLAGS}" -o target/${OUTFILE} main.go
 	gzip -c < target/${OUTFILE} > target/${OUTFILE}.gz
 
 .PHONY: cross-compile
@@ -43,8 +42,3 @@ cross-compile:
 	OUTFILE=openldap_exporter-osx-amd64 GOOS=darwin GOARCH=amd64 $(MAKE) compile
 	OUTFILE=openldap_exporter-osx-arm64 GOOS=darwin GOARCH=arm64 $(MAKE) compile
 	(cd target && find . -name '*.gz' -exec sha256sum {} \;) > target/verify.sha256
-
-.PHONY: vendor
-vendor:
-	go mod tidy -compat=1.20
-	go mod vendor
