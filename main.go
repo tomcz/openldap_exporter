@@ -530,7 +530,7 @@ func (s *Server) adaptor(kvs ...interface{}) error {
 		level = fmt.Sprint(val)
 	}
 	var args []any
-	for _, e := range maps.Entries(fields) {
+	for _, e := range maps.SortedEntries(fields) {
 		args = append(args, e.Key, e.Val)
 	}
 	ll := s.logger.With(args...)
